@@ -743,6 +743,7 @@ StyleTab:CreateDropdown({
     Flag = "StyleLockDropdown",
     Callback = function(Options) 
         chosenStyle = Options[1] 
+    end,
 })
 
 local Button = StyleTab:CreateButton({
