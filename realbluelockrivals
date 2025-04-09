@@ -696,7 +696,7 @@ OPTab:CreateToggle({
                     if h and h.Value then
                         -- Đang giữ bóng, sút và teleport bóng tới vị trí cố định
                         game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(100, nil, nil, goalCFrame.Position)
-                        task.wait(0.4)
+                        task.wait(0.7)
                         local ball = workspace:FindFirstChild("Football") or workspace:WaitForChild("Football", 5)
                         if ball then
                             local targetPos = (goalCFrame * CFrame.new(0, 0, 10)).Position
@@ -730,6 +730,48 @@ OPTab:CreateToggle({
     end,
 })
 
+-- Input: save power value to getgenv() on change
+local Input = OPTab:CreateInput({ 
+   Name = "Power", 
+   CurrentValue = 100, 
+   PlaceholderText = "Enter power",
+   RemoveTextAfterFocusLost = false,
+   Flag = "PowerShoot", 
+   Callback = function(Text)
+      local power = tonumber(Text)
+      if power then
+         getgenv().PowerShootValue = power
+      else
+         warn("Invalid power input, keeping previous value or defaulting to 100")
+         getgenv().PowerShootValue = 100
+      end
+   end,
+})
+
+-- Keybind: use the saved power value from getgenv()
+local Keybind = OPTab:CreateKeybind({ 
+   Name = "Low Shoot",
+   CurrentKeybind = "Q",
+   HoldToInteract = false,
+   Flag = "KeybindShoot", 
+   Callback = function()
+      local power = getgenv().PowerShootValue or 100
+      local player = game.Players.LocalPlayer
+      local character = player.Character
+      local root = character and character:FindFirstChild("HumanoidRootPart")
+
+      if root then
+         -- Shoot forward at same Y height (low kick)
+         local forward = root.CFrame.LookVector
+         local lowTarget = root.Position + forward * 20
+
+         game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(power, nil, nil, lowTarget)
+      end
+   end,
+})
+
+
+
 -- ### Style Tab UI Elements
 StyleTab:CreateSection("Style")
 local chosenStyle = "Isagi" -- Giá trị khởi tạo là string
@@ -743,7 +785,7 @@ StyleTab:CreateDropdown({
     Flag = "StyleLockDropdown",
     Callback = function(Options) 
         chosenStyle = Options[1] 
-    end,
+	end,
 })
 
 local Button = StyleTab:CreateButton({
