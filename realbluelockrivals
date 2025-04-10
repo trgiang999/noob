@@ -577,7 +577,7 @@ local function Goto(t, g, a)
         print("Slide event fired")
     elseif a == "Kick" then
         game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(100, nil, nil, workspace.Goals[g].Position)
-        task.wait(0.7)
+        task.wait(0.4)
         local ball = workspace:FindFirstChild("Football") or workspace:WaitForChild("Football", 5)
         if ball then
             local targetPos = (workspace.Goals[g].CFrame * CFrame.new(0, 0, 10)).Position
@@ -696,7 +696,7 @@ OPTab:CreateToggle({
                     if h and h.Value then
                         -- Đang giữ bóng, sút và teleport bóng tới vị trí cố định
                         game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(100, nil, nil, goalCFrame.Position)
-                        task.wait(0.7)
+                        task.wait(0.4)
                         local ball = workspace:FindFirstChild("Football") or workspace:WaitForChild("Football", 5)
                         if ball then
                             local targetPos = (goalCFrame * CFrame.new(0, 0, 10)).Position
