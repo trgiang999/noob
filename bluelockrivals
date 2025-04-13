@@ -723,6 +723,56 @@ local Button = OPTab:CreateButton({
    end,
 })
 
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local FlingAllConnection
+
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local FlingAllConnection
+
+local FlingAllToggle = OPTab:CreateToggle({
+	Name = "Fling All(Reo/Kunigami required)",
+	CurrentValue = false,
+	Flag = "FlingAll",
+	Callback = function(Value)
+		if Value then
+			FlingAllConnection = task.spawn(function()
+				while true do
+					for _, player in pairs(Players:GetPlayers()) do
+						if player ~= Players.LocalPlayer then
+							local args = {
+								[1] = "BodyBlock",
+								[2] = workspace:FindFirstChild(player.Name)
+							}
+
+							if args[2] then
+								ReplicatedStorage:WaitForChild("Packages")
+									:WaitForChild("Knit")
+									:WaitForChild("Services")
+									:WaitForChild("AbilityService")
+									:WaitForChild("RE")
+									:WaitForChild("Ability")
+									:FireServer(unpack(args))
+							end
+						end
+					end
+					task.wait(0.25) -- Điều chỉnh thời gian nếu cần spam nhanh/chậm hơn
+				end
+			end)
+		else
+			if FlingAllConnection then
+				pcall(function()
+					task.cancel(FlingAllConnection)
+				end)
+			end
+		end
+	end,
+})
+
 
 
 -- Input: save power value to getgenv() on change
