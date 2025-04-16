@@ -550,13 +550,10 @@ VisualTab:CreateToggle({
 })
 
 -- ### OP Tab UI Elements
-OPTab:CreateSection("Striker")
-
 local function ClosestCharacter(o, w)
     local c, d = nil, math.huge
     if not o or not o:FindFirstChild("HumanoidRootPart") then return nil end
-    local targetWorkspace = w or workspace
-    for _, m in ipairs(targetWorkspace:GetDescendants()) do
+    for _, m in ipairs((w or workspace):GetDescendants()) do
         if m:IsA("Model") and m ~= o and m:FindFirstChild("Humanoid") and m:FindFirstChild("HumanoidRootPart") and m:FindFirstChild("Football") then
             local dist = (o.HumanoidRootPart.Position - m.HumanoidRootPart.Position).Magnitude
             if dist < d then c, d = m, dist end
@@ -565,10 +562,10 @@ local function ClosestCharacter(o, w)
     return c
 end
 
-local function Goto(hrp, t, g, a)
+local function Goto(t, g, a, humanoidrootpart)
     print("Goto called with target:", t, "goal:", g, "action:", a)
-    if hrp then
-        hrp.CFrame = t
+    if humanoidrootpart then
+        humanoidrootpart.CFrame = t
         print("HumanoidRootPart CFrame set to:", t)
     else
         print("Error: humanoidrootpart is nil in Goto function!")
@@ -578,7 +575,8 @@ local function Goto(hrp, t, g, a)
         print("Slide event fired")
     elseif a == "Kick" then
         game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(100, nil, nil, workspace.Goals[g].Position)
-        local ball = workspace:FindFirstChild("Football") or workspace:WaitForChild("Football", 5)
+        task.wait(0.1) -- Add 0.1s delay after kick
+        local ball = workspace:FindFirstChild("Football")
         if ball then
             local targetPos = (workspace.Goals[g].CFrame * CFrame.new(0, 0, 10)).Position
             ball.CFrame = CFrame.new(targetPos)
@@ -596,53 +594,52 @@ OPTab:CreateToggle({
 
         if Value then
             task.spawn(function()
-                local player = game.Players.LocalPlayer
-                local g = {["Away"] = "Away", ["Home"] = "Home"}
-
-                while getgenv().Settings.AutoFarmTeleportToggle do
-                    if player.Team.Name == "Visitor" then
-                        task.wait() -- Keep a minimal wait to avoid excessive looping when not active
-                        continue
-                    end
+                local function autoGoalLogic()
+                    if player.Team.Name == "Visitor" then return end
 
                     local character = player.Character
-                    if not character then
-                        task.wait() -- Minimal wait if character doesn't exist
-                        continue
-                    end
-                    local hrp = character:FindFirstChild("HumanoidRootPart")
+                    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+                    local humanoidrootpart = character.HumanoidRootPart
                     local humanoid = character:FindFirstChildOfClass("Humanoid")
-                    local values = character:FindFirstChild("Values")
-                    local hasBallValue = values and values:FindFirstChild("HasBall")
+                    if not humanoid then return end
+                    local v = character:FindFirstChild("Values")
+                    local h = v and v:FindFirstChild("HasBall")
+                    local g = {["Away"] = "Away", ["Home"] = "Home"}
 
-                    if hrp and humanoid and hasBallValue then
-                        local targetGoal = g[player.Team.Name]
+                    local targetGoal = g[player.Team.Name]
+                    if not targetGoal then return end
 
-                        if targetGoal then
-                            if hasBallValue.Value then
-                                Goto(hrp, hrp.CFrame * CFrame.new(0, 50, 0), targetGoal, "Kick")
-                            else
-                                local ball = workspace:FindFirstChild("Football")
-                                if ball then
-                                    local targetCFrame = ball.CFrame * CFrame.new(0, 3.5, 0)
-                                    hrp.CFrame = targetCFrame
-                                else
-                                    local closestOpponent = ClosestCharacter(character)
-                                    local opponentBall = closestOpponent and closestOpponent:FindFirstChild("Football")
-                                    if opponentBall then
-                                        Goto(hrp, opponentBall.CFrame, targetGoal, "Slide")
-                                    end
-                                end
-                            end
+                    if h and h.Value then
+                        Goto(humanoidrootpart.CFrame * CFrame.new(0, 50, 0), targetGoal, "Kick", humanoidrootpart)
+                        task.wait(0.1) -- Add 0.1s delay after teleporting to goal
+                    else
+                        local b = workspace:FindFirstChild("Football")
+                        if b then
+                            humanoidrootpart.CFrame = b.CFrame * CFrame.new(0, 3.5, 0)
+                        else
+                            local t = ClosestCharacter(character)
+                            local fb = t and t:FindFirstChild("Football")
+                            if fb then Goto(fb.CFrame, targetGoal, "Slide", humanoidrootpart) end
                         end
                     end
-                    task.wait() -- Keep a minimal wait to prevent script from hogging resources
+                end
+
+                local function onTeamChanged()
+                    if getgenv().Settings.AutoFarmTeleportToggle then
+                        autoGoalLogic()
+                    end
+                end
+
+                player:GetPropertyChangedSignal("Team"):Connect(onTeamChanged)
+
+                while getgenv().Settings.AutoFarmTeleportToggle do
+                    autoGoalLogic()
+                    task.yield() -- Minimal delay for loop
                 end
             end)
         end
     end,
 })
-
 OPTab:CreateToggle({
     Name = "Auto Goal Rush",
     CurrentValue = false,
