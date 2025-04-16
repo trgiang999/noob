@@ -648,7 +648,7 @@ OPTab:CreateToggle({
 
                 while getgenv().Settings.AutoFarmTeleportToggle do
                     autoGoalLogic()
-                    task.yield() -- Minimal delay for loop
+                    task.wait(0) -- Minimal delay for loop
                 end
             end)
         end
