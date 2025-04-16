@@ -576,13 +576,12 @@ local function Goto(t, g, a)
         print("Slide event fired")
     elseif a == "Kick" then
         game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(100, nil, nil, workspace.Goals[g].Position)
-        task.wait(0.3)
+        task.wait(0.1)
         local ball = workspace:FindFirstChild("Football") or workspace:WaitForChild("Football", 5)
         if ball then
             local targetPos = (workspace.Goals[g].CFrame * CFrame.new(0, 0, 10)).Position
             repeat
                 ball.CFrame = CFrame.new(targetPos)
-                task.wait(0.1)
             until (ball.Position - targetPos).Magnitude < 0.2
         end
     end
