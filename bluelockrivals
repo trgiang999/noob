@@ -688,7 +688,6 @@ OPTab:CreateToggle({
                             local targetPos = (goalCFrame * CFrame.new(0, 0, 10)).Position
                             repeat
                                 ball.CFrame = CFrame.new(targetPos)
-                                task.wait(0.1)
                             until (ball.Position - targetPos).Magnitude < 0.2
                         end
                     else
@@ -709,7 +708,6 @@ OPTab:CreateToggle({
 
                 while getgenv().Settings.AutoGoalRush do
                     autoGoalRushLogic()
-                    task.wait(0.1)
                 end
             end)
         end
