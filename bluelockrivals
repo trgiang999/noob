@@ -638,6 +638,7 @@ OPTab:CreateToggle({
                 local function onTeamChanged()
                     if getgenv().Settings.AutoFarmTeleportToggle then
                         autoGoalLogic()
+			task.wait(0.1)
                     end
                 end
 
