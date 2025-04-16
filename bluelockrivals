@@ -1,4 +1,3 @@
-print("Hello world")
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Services = {
     Players = game:GetService("Players"),
@@ -550,6 +549,8 @@ VisualTab:CreateToggle({
 })
 
 -- ### OP Tab UI Elements
+OPTab:CreateSection("Striker")
+
 local function ClosestCharacter(o, w)
     local c, d = nil, math.huge
     if not o or not o:FindFirstChild("HumanoidRootPart") then return nil end
@@ -562,7 +563,7 @@ local function ClosestCharacter(o, w)
     return c
 end
 
-local function Goto(t, g, a, humanoidrootpart)
+local function Goto(t, g, a)
     print("Goto called with target:", t, "goal:", g, "action:", a)
     if humanoidrootpart then
         humanoidrootpart.CFrame = t
@@ -575,11 +576,14 @@ local function Goto(t, g, a, humanoidrootpart)
         print("Slide event fired")
     elseif a == "Kick" then
         game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(100, nil, nil, workspace.Goals[g].Position)
-        task.wait(0.1) -- Add 0.1s delay after kick
-        local ball = workspace:FindFirstChild("Football")
+        task.wait(0.1)
+        local ball = workspace:FindFirstChild("Football") or workspace:WaitForChild("Football", 5)
         if ball then
             local targetPos = (workspace.Goals[g].CFrame * CFrame.new(0, 0, 10)).Position
-            ball.CFrame = CFrame.new(targetPos)
+            repeat
+                ball.CFrame = CFrame.new(targetPos)
+                task.wait(0)
+            until (ball.Position - targetPos).Magnitude < 0.1
         end
     end
 end
@@ -594,35 +598,43 @@ OPTab:CreateToggle({
 
         if Value then
             task.spawn(function()
+                -- Function to handle the auto goal logic
                 local function autoGoalLogic()
-                    if player.Team.Name == "Visitor" then return end
+					if player.Team.Name == "Visitor" then
+						return
+					end
 
-                    local character = player.Character
-                    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-                    local humanoidrootpart = character.HumanoidRootPart
-                    local humanoid = character:FindFirstChildOfClass("Humanoid")
-                    if not humanoid then return end
-                    local v = character:FindFirstChild("Values")
-                    local h = v and v:FindFirstChild("HasBall")
-                    local g = {["Away"] = "Away", ["Home"] = "Home"}
+					local character = player.Character
+					if not character or not character:FindFirstChild("HumanoidRootPart") then
+						return
+					end
+					local humanoidrootpart = character:WaitForChild("HumanoidRootPart")
+					local humanoid = character:FindFirstChildOfClass("Humanoid")
+					if not humanoid then
+						return
+					end
+					local v = character:FindFirstChild("Values") or character:WaitForChild("Values", 5)
+					local h = v and (v:FindFirstChild("HasBall") or v:WaitForChild("HasBall", 5))
+					local g = {["Away"] = "Away", ["Home"] = "Home"}
 
-                    local targetGoal = g[player.Team.Name]
-                    if not targetGoal then return end
+					local targetGoal = g[player.Team.Name]
 
-                    if h and h.Value then
-                        Goto(humanoidrootpart.CFrame * CFrame.new(0, 50, 0), targetGoal, "Kick", humanoidrootpart)
-                        task.wait(0.1) -- Add 0.1s delay after teleporting to goal
-                    else
-                        local b = workspace:FindFirstChild("Football")
-                        if b then
-                            humanoidrootpart.CFrame = b.CFrame * CFrame.new(0, 3.5, 0)
-                        else
-                            local t = ClosestCharacter(character)
-                            local fb = t and t:FindFirstChild("Football")
-                            if fb then Goto(fb.CFrame, targetGoal, "Slide", humanoidrootpart) end
-                        end
-                    end
-                end
+					if targetGoal then
+						if h and h.Value then
+							Goto(humanoidrootpart.CFrame * CFrame.new(0, 50, 0), targetGoal, "Kick")
+						else
+							local b = workspace:FindFirstChild("Football")
+							if b then
+								local targetCFrame = b.CFrame * CFrame.new(0, 3.5, 0)
+								humanoidrootpart.CFrame = targetCFrame -- Quay lại đặt CFrame trực tiếp
+							else
+								local t = ClosestCharacter(character)
+								local fb = t and t:FindFirstChild("Football") or (t and t:WaitForChild("Football", 5))
+								if fb then Goto(fb.CFrame, targetGoal, "Slide") end
+							end
+						end
+					end
+				end
 
                 local function onTeamChanged()
                     if getgenv().Settings.AutoFarmTeleportToggle then
@@ -634,12 +646,13 @@ OPTab:CreateToggle({
 
                 while getgenv().Settings.AutoFarmTeleportToggle do
                     autoGoalLogic()
-                    task.wait() -- Minimal delay for loop
+                    task.wait(0.1)
                 end
             end)
         end
     end,
 })
+
 OPTab:CreateToggle({
     Name = "Auto Goal Rush",
     CurrentValue = false,
@@ -675,6 +688,7 @@ OPTab:CreateToggle({
                             local targetPos = (goalCFrame * CFrame.new(0, 0, 10)).Position
                             repeat
                                 ball.CFrame = CFrame.new(targetPos)
+                                task.wait(0.1)
                             until (ball.Position - targetPos).Magnitude < 0.2
                         end
                     else
@@ -695,6 +709,7 @@ OPTab:CreateToggle({
 
                 while getgenv().Settings.AutoGoalRush do
                     autoGoalRushLogic()
+                    task.wait(0.1)
                 end
             end)
         end
