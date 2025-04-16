@@ -564,16 +564,11 @@ local function ClosestCharacter(o, w)
 end
 
 local function Goto(t, g, a)
-    print("Goto called with target:", t, "goal:", g, "action:", a)
     if humanoidrootpart then
         humanoidrootpart.CFrame = t
-        print("HumanoidRootPart CFrame set to:", t)
-    else
-        print("Error: humanoidrootpart is nil in Goto function!")
     end
     if a == "Slide" then
         game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Slide:FireServer()
-        print("Slide event fired")
     elseif a == "Kick" then
         game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(100, nil, nil, workspace.Goals[g].Position)
         task.wait(0.1)
@@ -582,6 +577,7 @@ local function Goto(t, g, a)
             local targetPos = (workspace.Goals[g].CFrame * CFrame.new(0, 0, 10)).Position
             repeat
                 ball.CFrame = CFrame.new(targetPos)
+                task.wait()
             until (ball.Position - targetPos).Magnitude < 0.2
         end
     end
@@ -597,48 +593,36 @@ OPTab:CreateToggle({
 
         if Value then
             task.spawn(function()
-                -- Function to handle the auto goal logic
                 local function autoGoalLogic()
-					if player.Team.Name == "Visitor" then
-						return
-					end
+                    if player.Team.Name == "Visitor" then return end
 
-					local character = player.Character
-					if not character or not character:FindFirstChild("HumanoidRootPart") then
-						return
-					end
-					local humanoidrootpart = character:WaitForChild("HumanoidRootPart")
-					local humanoid = character:FindFirstChildOfClass("Humanoid")
-					if not humanoid then
-						return
-					end
-					local v = character:FindFirstChild("Values") or character:WaitForChild("Values", 5)
-					local h = v and (v:FindFirstChild("HasBall") or v:WaitForChild("HasBall", 5))
-					local g = {["Away"] = "Away", ["Home"] = "Home"}
+                    local character = player.Character
+                    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+                    humanoidrootpart = character:WaitForChild("HumanoidRootPart")
+                    local humanoid = character:FindFirstChildOfClass("Humanoid")
+                    if not humanoid then return end
+                    local v = character:FindFirstChild("Values") or character:WaitForChild("Values", 5)
+                    local h = v and (v:FindFirstChild("HasBall") or v:WaitForChild("HasBall", 5))
+                    local g = {["Away"] = "Away", ["Home"] = "Home"}
+                    local targetGoal = g[player.Team.Name]
 
-					local targetGoal = g[player.Team.Name]
-
-					if targetGoal then
-						if h and h.Value then
-							Goto(humanoidrootpart.CFrame * CFrame.new(0, 50, 0), targetGoal, "Kick")
-						else
-							local b = workspace:FindFirstChild("Football")
-							if b then
-								local targetCFrame = b.CFrame * CFrame.new(0, 3.5, 0)
-								humanoidrootpart.CFrame = targetCFrame -- Quay lại đặt CFrame trực tiếp
-							else
-								local t = ClosestCharacter(character)
-								local fb = t and t:FindFirstChild("Football") or (t and t:WaitForChild("Football", 5))
-								if fb then Goto(fb.CFrame, targetGoal, "Slide") end
-							end
-						end
-					end
-				end
+                    if targetGoal then
+                        if h and h.Value then
+                            Goto(humanoidrootpart.CFrame * CFrame.new(0, 50, 0), targetGoal, "Kick")
+                        else
+                            local t = ClosestCharacter(character)
+                            local fb = t and t:FindFirstChild("Football") or (t and t:WaitForChild("Football", 5))
+                            if fb then
+                                Goto(fb.CFrame * CFrame.new(0, 3.5, 0), targetGoal, "Slide")
+                            end
+                        end
+                    end
+                end
 
                 local function onTeamChanged()
                     if getgenv().Settings.AutoFarmTeleportToggle then
                         autoGoalLogic()
-			task.wait(0.1)
+                        task.wait(0.1)
                     end
                 end
 
@@ -646,7 +630,7 @@ OPTab:CreateToggle({
 
                 while getgenv().Settings.AutoFarmTeleportToggle do
                     autoGoalLogic()
-                    task.wait(0.1)
+                    task.wait(0.05) -- spam nhanh hơn
                 end
             end)
         end
