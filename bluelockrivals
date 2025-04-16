@@ -570,7 +570,6 @@ local function Goto(t, g, a)
     if a == "Slide" then
         game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Slide:FireServer()
     elseif a == "Kick" then
-        -- Teleport đến goal đối thủ trước khi gọi remote event Kick
         if humanoidrootpart then
             humanoidrootpart.CFrame = workspace.Goals[g].CFrame
         end
@@ -607,14 +606,20 @@ OPTab:CreateToggle({
 
                     if targetGoal then
                         if h and h.Value then
-                            -- Nếu có bóng thì gọi Remote Kick sau khi teleport đến goal
+                            -- Nếu có bóng, trước hết teleport đến goal đối thủ rồi gọi Shoot
                             Goto(humanoidrootpart.CFrame * CFrame.new(0, 50, 0), targetGoal, "Kick")
                         else
                             local t = ClosestCharacter(character)
                             local fb = t and t:FindFirstChild("Football") or (t and t:WaitForChild("Football", 5))
                             if fb then
-                                -- Nếu không có bóng thì chuyển đến vị trí bóng và liên tục gọi Slide
-                                Goto(fb.CFrame * CFrame.new(0, 3.5, 0), targetGoal, "Slide")
+                                -- Thay vì dùng việc cài đặt trực tiếp CFrame, gắn bóng vào nhân vật bằng Weld
+                                if not fb:FindFirstChild("FootballWeld") then
+                                    local weld = Instance.new("WeldConstraint")
+                                    weld.Name = "FootballWeld"
+                                    weld.Part0 = humanoidrootpart
+                                    weld.Part1 = fb
+                                    weld.Parent = fb
+                                end
                             end
                         end
                     end
@@ -631,12 +636,13 @@ OPTab:CreateToggle({
 
                 while getgenv().Settings.AutoFarmTeleportToggle do
                     autoGoalLogic()
-                    task.wait(0.1) -- Bạn có thể điều chỉnh tốc độ lặp lại ở đây
+                    task.wait(0.1)
                 end
             end)
         end
     end,
 })
+
 
 
 OPTab:CreateToggle({
