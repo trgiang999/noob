@@ -716,10 +716,29 @@ OPTab:CreateToggle({
     end,
 })
 
-local Button = OPTab:CreateButton({
+
+
+-- Keybind: use the saved power value from getgenv()
+local Keybind = OPTab:CreateKeybind({ 
+   Name = "Shoot Ball",
+   CurrentKeybind = "Z",
+   HoldToInteract = false,
+   Flag = "KeybindShoot", 
+   Callback = function()
+      local power = getgenv().PowerShootValue or 100
+      game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(power)
+   end,
+})
+
+
+local TrollTab = Window:CreateTab("😈Troll") -- Title, Image
+
+local Section = TrollTab:CreateSection("Fling")
+
+local Button = TrollTab:CreateButton({
    Name = "Fling People",
    Callback = function()
-	loadstring(game:HttpGet("https://pastefy.app/Lwux93kr/raw"))()
+	loadstring(game:HttpGet("https://pastefy.app/fFP2IgWN/raw"))()
    end,
 })
 
@@ -734,11 +753,16 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local FlingAllConnection
 
-local FlingAllToggle = OPTab:CreateToggle({
+local FlingAllToggle = TrollTab:CreateToggle({
 	Name = "Fling All(Reo/Kunigami required)",
 	CurrentValue = false,
 	Flag = "FlingAll",
 	Callback = function(Value)
+		local character = Players.LocalPlayer.Character
+		if character and character:FindFirstChild("HumanoidRootPart") then
+			character.HumanoidRootPart.Anchored = Value
+		end
+
 		if Value then
 			FlingAllConnection = task.spawn(function()
 				while true do
@@ -760,7 +784,7 @@ local FlingAllToggle = OPTab:CreateToggle({
 							end
 						end
 					end
-					task.wait(0.25) -- Điều chỉnh thời gian nếu cần spam nhanh/chậm hơn
+					task.wait(0.25)
 				end
 			end)
 		else
@@ -769,10 +793,126 @@ local FlingAllToggle = OPTab:CreateToggle({
 					task.cancel(FlingAllConnection)
 				end)
 			end
+
+			-- Ensure unanchor again in case character reloaded during loop
+			local char = Players.LocalPlayer.Character
+			if char and char:FindFirstChild("HumanoidRootPart") then
+				char.HumanoidRootPart.Anchored = false
+			end
 		end
 	end,
 })
 
+local Section = TrollTab:CreateSection("Movesets")
+
+local Button = TrollTab:CreateButton({
+   Name = "Kaiser Dribble(no subj)",
+   Callback = function()
+    local Players = game:GetService("Players")
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+	local UserInputService = game:GetService("UserInputService")
+
+	local player = Players.LocalPlayer
+	local character = player.Character or player.CharacterAdded:Wait()
+	local camera = workspace.CurrentCamera
+
+	-- UI setup
+	local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+	gui.Name = "KaiserDribbleUI"
+	gui.ResetOnSpawn = false
+
+	local frame = Instance.new("Frame", gui)
+	frame.Size = UDim2.new(0, 140, 0, 60)
+	frame.Position = UDim2.new(1, -150, 1, -70)
+	frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	frame.BackgroundTransparency = 0.2
+	frame.Active = true
+	frame.Draggable = true
+
+	local button = Instance.new("TextButton", frame)
+	button.Size = UDim2.new(1, 0, 1, 0)
+	button.Position = UDim2.new(0, 0, 0, 0)
+	button.Text = "Dribble"
+	button.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.TextScaled = true
+	button.AutoButtonColor = true
+
+	-- Show only on mobile
+	button.Visible = UserInputService.TouchEnabled
+
+	-- Find nearest visible player in front
+	local function getClosestVisiblePlayer()
+		local minDistance = math.huge
+		local closest = nil
+		local root = character:FindFirstChild("HumanoidRootPart")
+
+		for _, other in ipairs(Players:GetPlayers()) do
+			if other ~= player and workspace:FindFirstChild(other.Name) then
+				local otherChar = workspace[other.Name]
+				local otherRoot = otherChar:FindFirstChild("HumanoidRootPart")
+				if otherRoot then
+					local dirToPlayer = (otherRoot.Position - root.Position).Unit
+					local facing = root.CFrame.LookVector
+					if facing:Dot(dirToPlayer) > 0.5 then
+						local screenPos, onScreen = camera:WorldToViewportPoint(otherRoot.Position)
+						if onScreen then
+							local distance = (otherRoot.Position - root.Position).Magnitude
+							if distance < minDistance then
+								minDistance = distance
+								closest = other
+							end
+						end
+					end
+				end
+			end
+		end
+		return closest
+	end
+
+	-- Trigger skill
+	local function triggerDribble()
+		local target = getClosestVisiblePlayer()
+		if target then
+			button.Text = "Dribbling..."
+			button.AutoButtonColor = false
+			button.BackgroundTransparency = 0.5
+			button.TextTransparency = 0.5
+
+			task.wait(0.2) -- cooldown/delay
+
+			local args = {
+				[1] = "KaiserDribble",
+				[2] = {
+					["State"] = "Off-Ball",
+					["Action"] = "Dribble",
+					["Object"] = workspace:WaitForChild(target.Name)
+				}
+			}
+			ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit")
+				:WaitForChild("Services"):WaitForChild("AbilityService")
+				:WaitForChild("RE"):WaitForChild("Ability"):FireServer(unpack(args))
+
+			-- Reset button
+			button.Text = "Dribble"
+			button.AutoButtonColor = true
+			button.BackgroundTransparency = 0
+			button.TextTransparency = 0
+		end
+	end
+
+	-- PC keybind
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if processed then return end
+		if input.KeyCode == Enum.KeyCode.V then
+			triggerDribble()
+		end
+	end)
+
+	-- Mobile button
+	button.MouseButton1Click:Connect(triggerDribble)
+   end,
+})
 
 
 -- Input: save power value to getgenv() on change
@@ -792,20 +932,6 @@ local Input = OPTab:CreateInput({
       end
    end,
 })
-
--- Keybind: use the saved power value from getgenv()
-local Keybind = OPTab:CreateKeybind({ 
-   Name = "Shoot Ball",
-   CurrentKeybind = "Q",
-   HoldToInteract = false,
-   Flag = "KeybindShoot", 
-   Callback = function()
-      local power = getgenv().PowerShootValue or 100
-      game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(power)
-   end,
-})
-
-
 
 
 -- ### Style Tab UI Elements
