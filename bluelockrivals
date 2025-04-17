@@ -713,38 +713,41 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
                 while getgenv().Settings.AutoGoalTest do
                     local character = player.Character
                     local hrp = character and character:FindFirstChild("HumanoidRootPart")
+                    -- Kiểm tra HasBall
+                    local hasBall = character and character:FindFirstChild("Values")
+                                    and character.Values:FindFirstChild("HasBall")
+                                    and character.Values.HasBall.Value
 
-                    if hrp then
-                        -- Lấy bóng: teleport đến vị trí bóng
-                        local ball = workspace:FindFirstChild("Football")
-                        if ball then
-                            hrp.CFrame = ball.CFrame * CFrame.new(0, 3.5, 0)
-                            task.wait(0.05)
-
-                            -- Xác định mục tiêu theo đội
-                            local teamName = player.Team and player.Team.Name
-                            local targetPos
-                            if teamName == "Home" then
-                                targetPos = Vector3.new(322.7972412109375, 11.166389465332031, -47.563377380371094)
-                            else -- Assume Away or other
-                                targetPos = Vector3.new(20.6798095703125, 19.359363555908203, -82.8294448852539)
-                            end
-
-                            -- Teleport đến mục tiêu
-                            hrp.CFrame = CFrame.new(targetPos)
-				
-                            -- Fire remote event đá liên tục
-			    task.wait(0.1)
-                            shootEvent:FireServer(500, nil, nil, targetPos)
-                        end
+                    -- Xác định mục tiêu theo đội
+                    local teamName = player.Team and player.Team.Name
+                    local targetPos
+                    if teamName == "Home" then
+                        targetPos = Vector3.new(322.7972412109375, 11.166389465332031, -47.563377380371094)
+                    else
+                        targetPos = Vector3.new(20.6798095703125, 19.359363555908203, -82.8294448852539)
                     end
 
-                    task.wait(0.1)
+                    if hrp then
+                        if hasBall then
+                            -- Khi có bóng: loop teleport đến mục tiêu rồi đá
+                            hrp.CFrame = CFrame.new(targetPos)
+                            shootEvent:FireServer(100, nil, nil, targetPos)
+                            task.wait(0.1)
+                        else
+                            -- Khi không có bóng: teleport đến bóng để lấy
+                            local ball = workspace:FindFirstChild("Football")
+                            if ball then
+                                hrp.CFrame = ball.CFrame * CFrame.new(0, 3.5, 0)
+                            end
+                            task.wait(0.05)
+                        end
+                    end
                 end
             end)
         end
     end,
 })
+
 
 
 OPTab:CreateToggle({
