@@ -732,8 +732,9 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
 
                             -- Teleport đến mục tiêu
                             hrp.CFrame = CFrame.new(targetPos)
-
+				
                             -- Fire remote event đá liên tục
+			    task.wait(0.1)
                             shootEvent:FireServer(500, nil, nil, targetPos)
                         end
                     end
