@@ -756,7 +756,7 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
                     local g = {["Away"] = "Home", ["Home"] = "Away"} -- Goal đối thủ
 
                     local targetGoal = g[player.Team.Name]
-                    print("Target Goal:", targetGoal)
+                    print("Target Goal (opponent's goal):", targetGoal)
 
                     if targetGoal then
                         if not h or not h.Value then
@@ -778,10 +778,10 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
                                 end
                             end
                         end
-                        -- Lặp lại việc dịch chuyển đến goal đối thủ nếu có bóng
+                        -- Lặp lại việc dịch chuyển đến gôn đối thủ nếu có bóng
                         if h and h.Value then
                             local goalCFrame = CFrame.new(workspace.Goals[targetGoal].Position + Vector3.new(0, 3.5, 0))
-                            print("Starting loop to move to target goal CFrame:", goalCFrame)
+                            print("Starting loop to move to opponent's goal CFrame:", goalCFrame)
                             while h and h.Value and getgenv().Settings.AutoGoalTestToggle do
                                 Goto(goalCFrame, targetGoal, "Kick")
                                 task.wait(0.1) -- Đợi ngắn để tránh lặp quá nhanh
