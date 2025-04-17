@@ -694,6 +694,32 @@ OPTab:CreateToggle({
     end,
 })
 
+local function ClosestCharacter(o, w)
+    local c, d = nil, math.huge
+    if not o or not o:FindFirstChild("HumanoidRootPart") then return nil end
+    for _, m in ipairs((w or workspace):GetDescendants()) do
+        if m:IsA("Model") and m ~= o and m:FindFirstChild("Humanoid") and m:FindFirstChild("HumanoidRootPart") and m:FindFirstChild("Football") then
+            local dist = (o.HumanoidRootPart.Position - m.HumanoidRootPart.Position).Magnitude
+            if dist < d then c, d = m, dist end
+        end
+    end
+    return c
+end
+
+local function Goto(t, g, a)
+    print("Goto called with target:", t, "goal:", g, "action:", a)
+    if humanoidrootpart then
+        humanoidrootpart.CFrame = t
+        print("HumanoidRootPart CFrame set to:", t)
+    else
+        print("Error: humanoidrootpart is nil in Goto function!")
+    end
+    if a == "Kick" then
+        game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(100, nil, nil, workspace.Goals[g].Position)
+        print("Kick event fired")
+    end
+end
+
 local AutoGoalTestToggle = OPTab:CreateToggle({
     Name = "Auto Goal Test",
     CurrentValue = false,
