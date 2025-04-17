@@ -778,11 +778,18 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
                                 end
                             end
                         end
-                        -- Dịch chuyển đến goal đối thủ và đá
+                        -- Lặp lại việc dịch chuyển đến goal đối thủ nếu có bóng
                         if h and h.Value then
                             local goalCFrame = CFrame.new(workspace.Goals[targetGoal].Position + Vector3.new(0, 3.5, 0))
-                            print("Moving to target goal CFrame:", goalCFrame)
-                            Goto(goalCFrame, targetGoal, "Kick")
+                            print("Starting loop to move to target goal CFrame:", goalCFrame)
+                            while h and h.Value and getgenv().Settings.AutoGoalTestToggle do
+                                Goto(goalCFrame, targetGoal, "Kick")
+                                task.wait(0.1) -- Đợi ngắn để tránh lặp quá nhanh
+                                -- Kiểm tra lại xem còn giữ bóng không
+                                v = character:FindFirstChild("Values") or character:WaitForChild("Values", 5)
+                                h = v and (v:FindFirstChild("HasBall") or v:WaitForChild("HasBall", 5))
+                            end
+                            print("Stopped goal teleport loop, HasBall:", h and h.Value)
                         end
                     end
                 end
@@ -833,7 +840,7 @@ OPTab:CreateToggle({
                     if h and h.Value then
                         -- Đang giữ bóng, sút và teleport bóng tới vị trí cố định
                         game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(100, nil, nil, goalCFrame.Position)
-                        task.wait(0.4)
+                        task.wait(0.2)
                         local ball = workspace:FindFirstChild("Football") or workspace:WaitForChild("Football", 5)
                         if ball then
                             local targetPos = (goalCFrame * CFrame.new(0, 0, 10)).Position
