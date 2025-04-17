@@ -1,4 +1,7 @@
+-- Tải thư viện Rayfield
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Khai báo các dịch vụ
 local Services = {
     Players = game:GetService("Players"),
     RunService = game:GetService("RunService"),
@@ -12,12 +15,14 @@ local Services = {
     CoreGui = game:GetService("CoreGui")
 }
 
+-- Khai báo các biến cơ bản
 local player = Services.Players.LocalPlayer
 local mouse = player:GetMouse()
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:FindFirstChild("Humanoid") or character:WaitForChild("Humanoid")
 local humanoidrootpart = character:FindFirstChild("HumanoidRootPart") or character:WaitForChild("HumanoidRootPart")
 
+-- Khai báo các biến Debris_Variables
 local Debris_Variables = {
     Function_Variables = {
         getAllFromCollection = { taggedInstances = nil },
@@ -60,6 +65,7 @@ local Debris_Variables = {
     NoCooldownAirDashToggle = {}
 }
 
+-- Tạo cửa sổ chính
 local Window = Rayfield:CreateWindow({
    Name = "Noob Hub",
    Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
@@ -297,19 +303,22 @@ if not getgenv().AutoDribbleSettings then
     }
 end
 
+-- Dịch vụ cơ bản (đặt ở đầu script nếu chưa có)
 local R = game:GetService("ReplicatedStorage")
 local P = game:GetService("Players")
 local U = game:GetService("RunService")
 local L = P.LocalPlayer or P.PlayerAdded:Wait()
 
+-- Thêm Toggle Auto Dribble với logic bên trong
 LegitTab:CreateToggle({
     Name = "AutoDribble Toggle",
     CurrentValue = false,
     Flag = "AutoDribble",
     Callback = function(Value)
-        getgenv().AutoDribbleSettings.Enabled = Value 
+        getgenv().AutoDribbleSettings.Enabled = Value -- Cập nhật trạng thái Enabled
         
         if Value then
+            -- Khởi tạo nhân vật
             local function initCharacter()
                 local C = L.Character or L.CharacterAdded:Wait()
                 local H = C:WaitForChild("HumanoidRootPart")
@@ -335,6 +344,7 @@ LegitTab:CreateToggle({
                 return M and M:LoadAnimation(I)
             end
 
+            -- Kiểm tra trạng thái slide của người chơi khác
             local function T(p)
                 if p == L then return false end
                 local c = p.Character
@@ -346,14 +356,16 @@ LegitTab:CreateToggle({
                 return false
             end
 
+            -- Kiểm tra đội khác
             local function O(p)
                 if not L.Team or not p.Team then return false end
                 return L.Team ~= p.Team
             end
 
+            -- Hàm rê bóng
             local function D(d)
                 if not getgenv().AutoDribbleSettings.Enabled or not C.Values.HasBall.Value then return end
-                B:FireServer() 
+                B:FireServer() -- Gửi yêu cầu rê bóng
                 local s = L.PlayerStats.Style.Value
                 local t = G(s)
                 if t then
@@ -362,11 +374,12 @@ LegitTab:CreateToggle({
                 end
                 local F = workspace:FindFirstChild("Football")
                 if F then
-                    F.AssemblyLinearVelocity = Vector3.new() 
-                    F.CFrame = C.HumanoidRootPart.CFrame * CFrame.new(0, -2.5, 0) 
+                    F.AssemblyLinearVelocity = Vector3.new() -- Reset vận tốc bóng
+                    F.CFrame = C.HumanoidRootPart.CFrame * CFrame.new(0, -2.5, 0) -- Đặt bóng dưới chân
                 end
             end
 
+            -- Vòng lặp chính chạy khi toggle bật
             task.spawn(function()
                 while Rayfield.Flags["AutoDribble"].CurrentValue do
                     if not C or not H then return end
@@ -376,13 +389,13 @@ LegitTab:CreateToggle({
                             if r then
                                 local d = (r.Position - H.Position).Magnitude
                                 if d < getgenv().AutoDribbleSettings.range then
-                                    D(d) 
+                                    D(d) -- Thực hiện rê bóng nếu trong phạm vi
                                     break
                                 end
                             end
                         end
                     end
-                    task.wait(0.1) --
+                    task.wait(0.1) -- Tần suất kiểm tra
                 end
             end)
         end
@@ -412,20 +425,24 @@ local vipToggle = LegitTab:CreateToggle({
     end,
 })
 
+-- Khởi tạo Settings nếu chưa có
 if not getgenv().Settings then
     getgenv().Settings = {}
 end
 
+-- Tạo nút Infinite Stamina trong LegitTab
 LegitTab:CreateButton({
     Name = "Infinite Stamina",
     Callback = function()
         if not getgenv().Settings.InfiniteStamina then
             getgenv().Settings.InfiniteStamina = true
+            -- Thông báo bằng Rayfield (tương tự Fluent:Notify)
             Rayfield:Notify({
                 Title = "Infinite Stamina",
                 Content = "Enabled",
                 Duration = 3
             })
+            -- Chạy vòng lặp để duy trì stamina vô hạn
             task.spawn(function()
                 while task.wait(0.1) do
                     if getgenv().Settings.InfiniteStamina then
@@ -461,6 +478,7 @@ LegitTab:CreateButton({
 -- ### Visual Tab UI Elements
 VisualTab:CreateSection("Visual Features")
 
+-- Đảm bảo Debris_Variables đã được khai báo (thêm nếu chưa có)
 local Debris_Variables = Debris_Variables or {}
 Debris_Variables.ESP_Features = Debris_Variables.ESP_Features or {
     espEnabled = false,
@@ -468,16 +486,19 @@ Debris_Variables.ESP_Features = Debris_Variables.ESP_Features or {
     espObjects = {}
 }
 
+-- Dịch vụ cần thiết (đặt ở đầu script nếu chưa có)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
+-- Hàm tạo ESP cho một nhân vật
 local function createESP(player)
     if player == LocalPlayer or not player.Character then return end
     local character = player.Character
     local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
     if not humanoidRootPart then return end
 
+    -- Tạo BillboardGui
     local billboard = Instance.new("BillboardGui")
     billboard.Name = "ESP_" .. player.Name
     billboard.Adornee = humanoidRootPart
@@ -486,6 +507,7 @@ local function createESP(player)
     billboard.AlwaysOnTop = true
     billboard.Parent = game.CoreGui
 
+    -- Tạo TextLabel cho tên
     local nameLabel = Instance.new("TextLabel")
     nameLabel.Size = UDim2.new(1, 0, 0, 20)
     nameLabel.Position = UDim2.new(0, 0, 0, 0)
@@ -497,9 +519,11 @@ local function createESP(player)
     nameLabel.TextSize = 16
     nameLabel.Parent = billboard
 
+    -- Lưu trữ ESP object
     Debris_Variables.ESP_Features.espObjects[player] = billboard
 end
 
+-- Hàm xóa ESP
 local function removeESP(player)
     if Debris_Variables.ESP_Features.espObjects[player] then
         Debris_Variables.ESP_Features.espObjects[player]:Destroy()
@@ -515,9 +539,11 @@ VisualTab:CreateToggle({
     Callback = function(Value)
         Debris_Variables.ESP_Features.espEnabled = Value
         if Value then
+            -- Tạo ESP cho tất cả người chơi hiện tại
             for _, player in pairs(Players:GetPlayers()) do
                 createESP(player)
             end
+            -- Theo dõi người chơi mới
             Players.PlayerAdded:Connect(function(player)
                 if Debris_Variables.ESP_Features.espEnabled then
                     player.CharacterAdded:Connect(function()
@@ -525,9 +551,11 @@ VisualTab:CreateToggle({
                     end)
                 end
             end)
+            -- Xóa ESP khi người chơi rời
             Players.PlayerRemoving:Connect(function(player)
                 removeESP(player)
             end)
+            -- Cập nhật liên tục (nếu cần)
             task.spawn(function()
                 while Debris_Variables.ESP_Features.espEnabled do
                     for player, billboard in pairs(Debris_Variables.ESP_Features.espObjects) do
@@ -541,6 +569,7 @@ VisualTab:CreateToggle({
                 end
             end)
         else
+            -- Xóa tất cả ESP khi tắt
             for player, _ in pairs(Debris_Variables.ESP_Features.espObjects) do
                 removeESP(player)
             end
@@ -564,16 +593,27 @@ local function ClosestCharacter(o, w)
 end
 
 local function Goto(t, g, a)
+    print("Goto called with target:", t, "goal:", g, "action:", a)
     if humanoidrootpart then
         humanoidrootpart.CFrame = t
+        print("HumanoidRootPart CFrame set to:", t)
+    else
+        print("Error: humanoidrootpart is nil in Goto function!")
     end
     if a == "Slide" then
         game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Slide:FireServer()
+        print("Slide event fired")
     elseif a == "Kick" then
-        if humanoidrootpart then
-            humanoidrootpart.CFrame = workspace.Goals[g].CFrame
-        end
         game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(100, nil, nil, workspace.Goals[g].Position)
+        task.wait(0.2)
+        local ball = workspace:FindFirstChild("Football") or workspace:WaitForChild("Football", 5)
+        if ball then
+            local targetPos = (workspace.Goals[g].CFrame * CFrame.new(0, 0, 10)).Position
+            repeat
+                ball.CFrame = CFrame.new(targetPos)
+                task.wait(0.1)
+            until (ball.Position - targetPos).Magnitude < 0.2
+        end
     end
 end
 
@@ -587,48 +627,59 @@ OPTab:CreateToggle({
 
         if Value then
             task.spawn(function()
+                -- Function to handle the auto goal logic
                 local function autoGoalLogic()
-                    if player.Team.Name == "Visitor" then return end
+					print("autoGoalLogic called (Team:", player.Team.Name, ")")
+					if player.Team.Name == "Visitor" then
+						print("Player is on Visitor team, returning.")
+						return
+					end
 
-                    local character = player.Character
-                    if not character or not character:FindFirstChild("HumanoidRootPart") then
-                        return
-                    end
-                    humanoidrootpart = character:WaitForChild("HumanoidRootPart")
-                    local humanoid = character:FindFirstChildOfClass("Humanoid")
-                    if not humanoid then
-                        return
-                    end
-                    local v = character:FindFirstChild("Values") or character:WaitForChild("Values", 5)
-                    local h = v and (v:FindFirstChild("HasBall") or v:WaitForChild("HasBall", 5))
-                    local g = {["Away"] = "Away", ["Home"] = "Home"}
-                    local targetGoal = g[player.Team.Name]
+					local character = player.Character
+					if not character or not character:FindFirstChild("HumanoidRootPart") then
+						print("Character or HumanoidRootPart not found.")
+						return
+					end
+					local humanoidrootpart = character:WaitForChild("HumanoidRootPart")
+					local humanoid = character:FindFirstChildOfClass("Humanoid")
+					if not humanoid then
+						print("Humanoid not found.")
+						return
+					end
+					local v = character:FindFirstChild("Values") or character:WaitForChild("Values", 5)
+					local h = v and (v:FindFirstChild("HasBall") or v:WaitForChild("HasBall", 5))
+					local g = {["Away"] = "Away", ["Home"] = "Home"}
 
-                    if targetGoal then
-                        if h and h.Value then
-                            -- Nếu có bóng, trước hết teleport đến goal đối thủ rồi gọi Shoot
-                            Goto(humanoidrootpart.CFrame * CFrame.new(0, 50, 0), targetGoal, "Kick")
-                        else
-                            local t = ClosestCharacter(character)
-                            local fb = t and t:FindFirstChild("Football") or (t and t:WaitForChild("Football", 5))
-                            if fb then
-                                -- Thay vì dùng việc cài đặt trực tiếp CFrame, gắn bóng vào nhân vật bằng Weld
-                                if not fb:FindFirstChild("FootballWeld") then
-                                    local weld = Instance.new("WeldConstraint")
-                                    weld.Name = "FootballWeld"
-                                    weld.Part0 = humanoidrootpart
-                                    weld.Part1 = fb
-                                    weld.Parent = fb
-                                end
-                            end
-                        end
-                    end
-                end
+					local targetGoal = g[player.Team.Name]
+					print("Target Goal:", targetGoal)
+
+					if targetGoal then
+						if h and h.Value then
+							print("Player has the ball, kicking.")
+							Goto(humanoidrootpart.CFrame * CFrame.new(0, 50, 0), targetGoal, "Kick")
+						else
+							local b = workspace:FindFirstChild("Football")
+							print("Found Football:", b)
+							if b then
+								local targetCFrame = b.CFrame * CFrame.new(0, 3.5, 0)
+								print("Target CFrame for Football:", targetCFrame)
+								humanoidrootpart.CFrame = targetCFrame -- Quay lại đặt CFrame trực tiếp
+								print("HumanoidRootPart CFrame set to:", targetCFrame)
+							else
+								print("Football does not exist, trying to find closest player with ball.")
+								local t = ClosestCharacter(character)
+								print("Closest character:", t)
+								local fb = t and t:FindFirstChild("Football") or (t and t:WaitForChild("Football", 5))
+								print("Football of closest character:", fb)
+								if fb then Goto(fb.CFrame, targetGoal, "Slide") end
+							end
+						end
+					end
+				end
 
                 local function onTeamChanged()
                     if getgenv().Settings.AutoFarmTeleportToggle then
                         autoGoalLogic()
-                        task.wait(0.1)
                     end
                 end
 
@@ -643,7 +694,87 @@ OPTab:CreateToggle({
     end,
 })
 
+local AutoGoalTestToggle = OPTab:CreateToggle({
+    Name = "Auto Goal Test",
+    CurrentValue = false,
+    Flag = "AutoGoalTest",
+    Callback = function(Value)
+        getgenv().Settings = getgenv().Settings or {}
+        getgenv().Settings.AutoGoalTestToggle = Value
 
+        if Value then
+            task.spawn(function()
+                local function autoGoalTestLogic()
+                    print("autoGoalTestLogic called (Team:", player.Team.Name, ")")
+                    if player.Team.Name == "Visitor" then
+                        print("Player is on Visitor team, returning.")
+                        return
+                    end
+
+                    local character = player.Character
+                    if not character or not character:FindFirstChild("HumanoidRootPart") then
+                        print("Character or HumanoidRootPart not found.")
+                        return
+                    end
+                    local humanoidrootpart = character:WaitForChild("HumanoidRootPart")
+                    local humanoid = character:FindFirstChildOfClass("Humanoid")
+                    if not humanoid then
+                        print("Humanoid not found.")
+                        return
+                    end
+
+                    local g = {["Away"] = "Home", ["Home"] = "Away"} -- Đổi goal đối thủ
+                    local targetGoal = g[player.Team.Name]
+                    print("Target Goal:", targetGoal)
+
+                    if targetGoal then
+                        local b = workspace:FindFirstChild("Football")
+                        print("Found Football:", b)
+                        if b then
+                            -- Dịch chuyển đến bóng
+                            local targetCFrame = b.CFrame * CFrame.new(0, 3.5, 0)
+                            print("Target CFrame for Football:", targetCFrame)
+                            humanoidrootpart.CFrame = targetCFrame
+                            print("HumanoidRootPart CFrame set to:", targetCFrame)
+                        else
+                            -- Tìm người giữ bóng gần nhất
+                            print("Football not found, finding closest player with ball.")
+                            local t = ClosestCharacter(character)
+                            print("Closest character:", t)
+                            local fb = t and t:FindFirstChild("Football")
+                            if fb then
+                                local targetCFrame = fb.CFrame * CFrame.new(0, 3.5, 0)
+                                humanoidrootpart.CFrame = targetCFrame
+                                print("HumanoidRootPart CFrame set to closest character's football:", targetCFrame)
+                            else
+                                print("No football found on any character.")
+                                return
+                            end
+                        end
+
+                        -- Dịch chuyển đến goal đối thủ và đá
+                        local goalCFrame = CFrame.new(workspace.Goals[targetGoal].Position + Vector3.new(0, 3.5, 0))
+                        print("Moving to target goal CFrame:", goalCFrame)
+                        Goto(goalCFrame, targetGoal, "Kick")
+                    end
+                end
+
+                local function onTeamChanged()
+                    if getgenv().Settings.AutoGoalTestToggle then
+                        autoGoalTestLogic()
+                    end
+                end
+
+                player:GetPropertyChangedSignal("Team"):Connect(onTeamChanged)
+
+                while getgenv().Settings.AutoGoalTestToggle do
+                    autoGoalTestLogic()
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end,
+})
 
 OPTab:CreateToggle({
     Name = "Auto Goal Rush",
@@ -674,7 +805,7 @@ OPTab:CreateToggle({
                     if h and h.Value then
                         -- Đang giữ bóng, sút và teleport bóng tới vị trí cố định
                         game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(100, nil, nil, goalCFrame.Position)
-                        task.wait(0.3)
+                        task.wait(0.4)
                         local ball = workspace:FindFirstChild("Football") or workspace:WaitForChild("Football", 5)
                         if ball then
                             local targetPos = (goalCFrame * CFrame.new(0, 0, 10)).Position
@@ -689,6 +820,7 @@ OPTab:CreateToggle({
                         if b then
                             humanoidrootpart.CFrame = b.CFrame * CFrame.new(0, 3.5, 0)
                         else
+                            -- Không thấy bóng, tìm player gần nhất có bóng
                             local t = ClosestCharacter(character)
                             local fb = t and t:FindFirstChild("Football") or (t and t:WaitForChild("Football", 5))
                             if fb then
@@ -709,7 +841,6 @@ OPTab:CreateToggle({
 })
 
 
-
 -- Keybind: use the saved power value from getgenv()
 local Keybind = OPTab:CreateKeybind({ 
    Name = "Shoot Ball",
@@ -721,6 +852,26 @@ local Keybind = OPTab:CreateKeybind({
       game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(power)
    end,
 })
+
+-- Input: save power value to getgenv() on change
+local Input = OPTab:CreateInput({ 
+   Name = "Power", 
+   CurrentValue = 100, 
+   PlaceholderText = "Enter power",
+   RemoveTextAfterFocusLost = false,
+   Flag = "PowerShoot", 
+   Callback = function(Text)
+      local power = tonumber(Text)
+      if power then
+         getgenv().PowerShootValue = power
+      else
+         warn("Invalid power input, keeping previous value or defaulting to 100")
+         getgenv().PowerShootValue = 100
+      end
+   end,
+})
+
+
 
 
 local TrollTab = Window:CreateTab("😈Troll") -- Title, Image
@@ -907,24 +1058,6 @@ local Button = TrollTab:CreateButton({
 })
 
 
--- Input: save power value to getgenv() on change
-local Input = OPTab:CreateInput({ 
-   Name = "Power", 
-   CurrentValue = 100, 
-   PlaceholderText = "Enter power",
-   RemoveTextAfterFocusLost = false,
-   Flag = "PowerShoot", 
-   Callback = function(Text)
-      local power = tonumber(Text)
-      if power then
-         getgenv().PowerShootValue = power
-      else
-         warn("Invalid power input, keeping previous value or defaulting to 100")
-         getgenv().PowerShootValue = 100
-      end
-   end,
-})
-
 
 -- ### Style Tab UI Elements
 StyleTab:CreateSection("Style")
@@ -934,12 +1067,12 @@ local chosenFlow = "Puzzle"
 StyleTab:CreateDropdown({
     Name = "Style",
     Options = {"Isagi", "Chigiri", "Bachira", "Otoya", "Hiori", "Gagamaru", "King", "Nagi", "Reo", "Karasu", "Shidou", "Kunigami", "Sae", "Aiku", "Rin", "Yukimiya", "Don Lorenzo", "Kaiser", "NEL Isagi"},
-    CurrentOption = chosenStyle, 
-    MultipleOptions = false,
+    CurrentOption = chosenStyle, -- Giá trị mặc định là string
+    MultipleOptions = false, -- Chỉ chọn một giá trị
     Flag = "StyleLockDropdown",
     Callback = function(Options) 
-        chosenStyle = Options[1] 
-	end,
+        chosenStyle = Options[1] -- Lấy phần tử đầu tiên từ table, sẽ là string
+    end,
 })
 
 local Button = StyleTab:CreateButton({
@@ -951,12 +1084,15 @@ local Button = StyleTab:CreateButton({
 
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local StyleTab = StyleTab
+local StyleTab = StyleTab -- Giả sử StyleTab đã được định nghĩa trước
 
+-- Lấy đối tượng AbilityCooldowns
 local abilityCooldowns = ReplicatedStorage:FindFirstChild("AbilityCooldowns")
 
+-- Table để lưu giá trị gốc của các attributes
 local originalAttributes = {}
 
+-- Hàm lưu giá trị gốc của attributes
 local function saveOriginalAttributes()
     if abilityCooldowns then
         for attrName, attrValue in pairs(abilityCooldowns:GetAttributes()) do
@@ -965,6 +1101,7 @@ local function saveOriginalAttributes()
     end
 end
 
+-- Hàm khôi phục giá trị gốc của attributes
 local function restoreOriginalAttributes()
     if abilityCooldowns then
         for attrName, originalValue in pairs(originalAttributes) do
@@ -973,6 +1110,7 @@ local function restoreOriginalAttributes()
     end
 end
 
+-- Hàm đặt tất cả attributes thành 0
 local function setAttributesToZero()
     if abilityCooldowns then
         for attrName, _ in pairs(abilityCooldowns:GetAttributes()) do
@@ -981,25 +1119,31 @@ local function setAttributesToZero()
     end
 end
 
+-- Biến để theo dõi kết nối Heartbeat
 local heartbeatConnection = nil
 
+-- Tạo Toggle
 local Toggle = StyleTab:CreateToggle({
     Name = "No Cooldown",
     CurrentValue = false,
-    Flag = "NoCooldownToggle",
+    Flag = "NoCooldownToggle", -- Đảm bảo flag duy nhất nếu dùng lưu cấu hình
     Callback = function(Value)
-        if Value then 
+        if Value then -- Khi Toggle được bật
+            -- Lưu giá trị gốc nếu chưa lưu
             if next(originalAttributes) == nil then
                 saveOriginalAttributes()
             end
+            -- Bắt đầu chạy liên tục bằng Heartbeat
             if not heartbeatConnection then
                 heartbeatConnection = RunService.Heartbeat:Connect(setAttributesToZero)
             end
-        else --  
+        else -- Khi Toggle được tắt
+            -- Ngắt kết nối Heartbeat
             if heartbeatConnection then
                 heartbeatConnection:Disconnect()
                 heartbeatConnection = nil
             end
+            -- Khôi phục giá trị gốc
             restoreOriginalAttributes()
         end
     end,
@@ -1027,4 +1171,5 @@ local Button = StyleTab:CreateButton({
 
 
 
+-- Khởi động script
 Rayfield:LoadConfiguration()
