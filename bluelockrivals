@@ -714,9 +714,9 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
                     local character = player.Character
                     local hrp = character and character:FindFirstChild("HumanoidRootPart")
                     -- Kiểm tra HasBall
-                    local hasBall = character and character:FindFirstChild("Values")
-                                    and character.Values:FindFirstChild("HasBall")
-                                    and character.Values.HasBall.Value
+                    local hasBallValue = character and character:FindFirstChild("Values")
+                                          and character.Values:FindFirstChild("HasBall")
+                    local hasBall = hasBallValue and hasBallValue.Value
 
                     -- Xác định mục tiêu theo đội
                     local teamName = player.Team and player.Team.Name
@@ -729,19 +729,34 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
 
                     if hrp then
                         if hasBall then
-                            -- Khi có bóng: loop teleport đến mục tiêu rồi đá
+                            -- Khi có bóng: liên tục teleport đến mục tiêu rồi đá
                             hrp.CFrame = CFrame.new(targetPos)
                             shootEvent:FireServer(100, nil, nil, targetPos)
                             task.wait(0.1)
                         else
-                            -- Khi không có bóng: teleport đến bóng để lấy
+                            -- Khi không có bóng: teleport đến bóng để lấy và weld
                             local ball = workspace:FindFirstChild("Football")
-                            if ball then
+                            if ball and ball:IsA("BasePart") then
                                 hrp.CFrame = ball.CFrame * CFrame.new(0, 3.5, 0)
+                                -- Thêm WeldConstraint để gắn bóng vào HRP
+                                local weld = ball:FindFirstChild("AutoWeld")
+                                if not weld then
+                                    weld = Instance.new("WeldConstraint")
+                                    weld.Name = "AutoWeld"
+                                    weld.Part0 = hrp
+                                    weld.Part1 = ball
+                                    weld.Parent = ball
+                                end
                             end
                             task.wait(0.05)
                         end
                     end
+                end
+                -- Kết thúc: khi tắt toggle, loại bỏ weld nếu còn
+                local ball = workspace:FindFirstChild("Football")
+                if ball then
+                    local weld = ball:FindFirstChild("AutoWeld")
+                    if weld then weld:Destroy() end
                 end
             end)
         end
