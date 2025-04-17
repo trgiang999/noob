@@ -731,7 +731,6 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
                         if hasBall then
                             -- Khi có bóng: loop teleport đến mục tiêu rồi đá
                             hrp.CFrame = CFrame.new(targetPos)
-                            shootEvent:FireServer(100, nil, nil, targetPos)
                             task.wait(0.1)
                         else
                             -- Khi không có bóng: teleport đến bóng để lấy
