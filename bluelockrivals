@@ -793,7 +793,7 @@ end
 
 -- Toggle Auto Goal Test (mới)
 local AutoGoalTestToggle = OPTab:CreateToggle({
-    Name = "Auto Goal Test",
+    Name = "Auto Goal (New)",
     CurrentValue = false,
     Flag = "AutoGoalTest",
     Callback = function(Value)
