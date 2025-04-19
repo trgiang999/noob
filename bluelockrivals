@@ -737,7 +737,7 @@ local function autoGoalLogic2()
 
                 -- Teleport quả bóng đến vị trí gần targetGoal
                 local goalPosition = workspace.Goals[targetGoal].Position
-                local ballTargetPos = goalPosition + Vector3.new(0, 3.5, 10) -- Vị trí gần goal, cách 10 đơn vị
+                local ballTargetPos = goalPosition + Vector3.new(0, 10, 10) -- Vị trí gần goal, cách 10 đơn vị
                 b.CFrame = CFrame.new(ballTargetPos)
                 print("Football teleported to:", ballTargetPos)
             else
