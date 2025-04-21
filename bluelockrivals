@@ -851,7 +851,7 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
                 local weld = Instance.new("WeldConstraint")
                 weld.Part0 = hrp
                 weld.Part1 = ball
-                weld.Parent = ball
+                weld.Parent = hrp
 
                 -- 4) Smooth tới goal
                 local goalCFrame = CFrame.new(workspace.Goals[goalKey].Position + Vector3.new(0, 10, 0))
