@@ -694,123 +694,7 @@ OPTab:CreateToggle({
     end,
 })
 
--- Auto Goal Test Toggle
-local player = game.Players.LocalPlayer
-
-local function autoGoalLogic2()
-    print("autoGoalLogic2 called (Team:", player.Team.Name, ")")
-    if player.Team.Name == "Visitor" then
-        print("Player is on Visitor team, returning.")
-        return
-    end
-
-    local character = player.Character
-    if not character or not character:FindFirstChild("HumanoidRootPart") then
-        print("Character or HumanoidRootPart not found.")
-        return
-    end
-    local humanoidrootpart = character:WaitForChild("HumanoidRootPart")
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if not humanoid then
-        print("Humanoid not found.")
-        return
-    end
-    local v = character:FindFirstChild("Values") or character:WaitForChild("Values", 5)
-    local h = v and (v:FindFirstChild("HasBall") or v:WaitForChild("HasBall", 5))
-    local g = {["Away"] = "Away", ["Home"] = "Home"}
-    local targetGoal = g[player.Team.Name]
-
-    if targetGoal then
-        local ball = workspace:FindFirstChild("Football")
-        if h and h.Value and ball then
-            print("Player has the ball, welding and kicking.")
-            
-            -- Xóa weld cũ (nếu có)
-            for _, weld in pairs(ball:GetChildren()) do
-                if weld:IsA("WeldConstraint") then
-                    weld:Destroy()
-                end
-            end
-
-            -- Weld bóng vào nhân vật
-            local weld = Instance.new("WeldConstraint")
-            weld.Part0 = humanoidrootpart
-            weld.Part1 = ball
-            weld.Parent = ball
-
-            task.wait(0.1)
-
-            -- Kick bóng
-            game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(
-                100, nil, nil, workspace.Goals[targetGoal].Position
-            )
-            print("Kicked ball toward goal:", targetGoal)
-
-            -- Xóa weld sau khi kick
-            task.delay(0.2, function()
-                if weld and weld.Parent then
-                    weld:Destroy()
-                end
-            end)
-
-            -- Dịch chuyển người chơi đến gần goal
-            local goalPosition = workspace.Goals[targetGoal].Position
-            humanoidrootpart.CFrame = CFrame.new(goalPosition + Vector3.new(0, 10, 0))
-            print("Teleported player to goal:", goalPosition)
-        else
-            print("Player does not have ball, try teleport to ball.")
-            if ball then
-                humanoidrootpart.CFrame = ball.CFrame + Vector3.new(0, 3.5, 0)
-            else
-                local t = ClosestCharacter(character)
-                local fb = t and t:FindFirstChild("Football") or (t and t:WaitForChild("Football", 5))
-                if fb then Goto(fb.CFrame, targetGoal, "Slide") end
-            end
-        end
-    end
-end
-
-
--- Hàm ClosestCharacter (giữ nguyên)
-local function ClosestCharacter(o, w)
-    local c, d = nil, math.huge
-    if not o or not o:FindFirstChild("HumanoidRootPart") then return nil end
-    for _, m in ipairs((w or workspace):GetDescendants()) do
-        if m:IsA("Model") and m ~= o and m:FindFirstChild("Humanoid") and m:FindFirstChild("HumanoidRootPart") and m:FindFirstChild("Football") then
-            local dist = (o.HumanoidRootPart.Position - m.HumanoidRootPart.Position).Magnitude
-            if dist < d then c, d = m, dist end
-        end
-    end
-    return c
-end
-
--- Hàm Goto (giữ nguyên)
-local function Goto(t, g, a)
-    print("Goto called with target:", t, "goal:", g, "action:", a)
-    if humanoidrootpart then
-        humanoidrootpart.CFrame = t
-        print("HumanoidRootPart CFrame set to:", t)
-    else
-        print("Error: humanoidrootpart is nil in Goto function!")
-    end
-    if a == "Slide" then
-        game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Slide:FireServer()
-        print("Slide event fired")
-    elseif a == "Kick" then
-        game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(100, nil, nil, workspace.Goals[g].Position)
-        task.wait(0.2)
-        local ball = workspace:FindFirstChild("Football") or workspace:WaitForChild("Football", 5)
-        if ball then
-            local targetPos = (workspace.Goals[g].CFrame * CFrame.new(0, 0, 10)).Position
-            repeat
-                ball.CFrame = CFrame.new(targetPos)
-                task.wait(0.1)
-            until (ball.Position - targetPos).Magnitude < 0.2
-        end
-    end
-end
-
--- Toggle Auto Goal Packed (liên tục)
+-- Toggle Auto Goal Packed
 OPTab:CreateToggle({
     Name = "Auto Goal Packed",
     CurrentValue = false,
@@ -820,57 +704,99 @@ OPTab:CreateToggle({
         getgenv().Settings.AutoGoalPacked = Value
 
         if Value then
-            local Players = game:GetService("Players")
-            local RepStorage = game:GetService("ReplicatedStorage")
-            local player = Players.LocalPlayer
-
-            -- 1 hàm gộp 4 bước
-            local function autoGoalPacked()
-                if player.Team.Name == "Visitor" then return end
-
-                local char = player.Character or player.CharacterAdded:Wait()
-                local hrp = char:WaitForChild("HumanoidRootPart")
-                local teamMap = { Away = "Away", Home = "Home" }
-                local targetKey = teamMap[player.Team.Name]
-                if not targetKey then return end
-
-                local ball = workspace:FindFirstChild("Football")
-                local goalPos = workspace.Goals[targetKey].Position
-                if not ball then return end
-
-                -- 1) Teleport tới bóng
-                hrp.CFrame = ball.CFrame * CFrame.new(0, 3.5, 0)
-
-                -- 2) Kick
-                RepStorage.Packages.Knit.Services.BallService.RE.Shoot:FireServer(
-                    100, nil, nil, goalPos
-                )
-
-                -- 3) Weld bóng vào HRP
-                for _, w in ipairs(ball:GetChildren()) do
-                    if w:IsA("WeldConstraint") then w:Destroy() end
-                end
-                local weld = Instance.new("WeldConstraint")
-                weld.Part0 = hrp
-                weld.Part1 = ball
-                weld.Parent = ball
-
-                -- 4) Teleport người chơi lên gần goal
-                hrp.CFrame = CFrame.new(goalPos + Vector3.new(0, 10, 0))
-
-                -- Hủy weld sau khi đã đến nơi
-                task.delay(0.5, function()
-                    if weld and weld.Parent then
-                        weld:Destroy()
-                    end
-                end)
-            end
-
-            -- Spawn 1 thread chạy liên tục
             task.spawn(function()
+                local Players       = game:GetService("Players")
+                local RepStorage    = game:GetService("ReplicatedStorage")
+                local player        = Players.LocalPlayer
+
+                -- 1) Tìm player gần nhất có bóng
+                local function ClosestCharacter(origin)
+                    if not origin or not origin:FindFirstChild("HumanoidRootPart") then return nil end
+                    local best, dist = nil, math.huge
+                    for _, m in ipairs(workspace:GetDescendants()) do
+                        if m:IsA("Model")
+                        and m ~= origin
+                        and m:FindFirstChild("Humanoid")
+                        and m:FindFirstChild("HumanoidRootPart")
+                        and m:FindFirstChild("Football") then
+                            local d = (origin.HumanoidRootPart.Position - m.HumanoidRootPart.Position).Magnitude
+                            if d < dist then best, dist = m, d end
+                        end
+                    end
+                    return best
+                end
+
+                -- 2) Goto: teleport + remote-event slide/kick
+                local function Goto(targetCFrame, goalKey, action)
+                    local char = player.Character
+                    local hrp  = char and char:FindFirstChild("HumanoidRootPart")
+                    if hrp then
+                        hrp.CFrame = targetCFrame
+                    end
+
+                    if action == "Slide" then
+                        RepStorage.Packages.Knit.Services.BallService.RE.Slide:FireServer()
+                    elseif action == "Kick" and goalKey then
+                        RepStorage.Packages.Knit.Services.BallService.RE.Shoot:FireServer(
+                            100, nil, nil, workspace.Goals[goalKey].Position
+                        )
+                    end
+                end
+
+                -- 3) Hàm gộp: lấy bóng, đá, weld, teleport goal
+                local function autoGoalPacked()
+                    if player.Team.Name == "Visitor" then return end
+                    local char = player.Character or player.CharacterAdded:Wait()
+                    local hrp  = char:WaitForChild("HumanoidRootPart")
+                    local v    = char:FindFirstChild("Values") or char:WaitForChild("Values", 5)
+                    local h    = v and (v:FindFirstChild("HasBall") or v:WaitForChild("HasBall", 5))
+                    local teamMap = { Away = "Away", Home = "Home" }
+                    local goalKey = teamMap[player.Team.Name]
+                    if not goalKey then return end
+
+                    local ball = workspace:FindFirstChild("Football")
+                    if ball then
+                        -- A) Nếu chưa có ball trong tay: teleport tới ball
+                        if not (h and h.Value) then
+                            local targetCF = ball.CFrame * CFrame.new(0, 3.5, 0)
+                            Goto(targetCF, nil, nil)
+                        end
+
+                        -- B) Kick bóng
+                        Goto(nil, goalKey, "Kick")
+                        -- C) Weld để bóng bám theo HRP
+                        for _, w in ipairs(ball:GetChildren()) do
+                            if w:IsA("WeldConstraint") then w:Destroy() end
+                        end
+                        local weld = Instance.new("WeldConstraint")
+                        weld.Part0 = hrp
+                        weld.Part1 = ball
+                        weld.Parent = ball
+
+                        -- D) Teleport người đến goal (gián tiếp qua weld)
+                        local goalPos = workspace.Goals[goalKey].Position
+                        hrp.CFrame = CFrame.new(goalPos + Vector3.new(0, 10, 0))
+
+                        -- Hủy weld sau khi đã đến nơi
+                        task.delay(0.5, function()
+                            if weld and weld.Parent then weld:Destroy() end
+                        end)
+                    else
+                        -- Nếu không có bóng: tìm người gần nhất rồi slide
+                        local other = ClosestCharacter(char)
+                        if other then
+                            local fb = other:FindFirstChild("Football") or other:WaitForChild("Football", 5)
+                            if fb then
+                                Goto(fb.CFrame, goalKey, "Slide")
+                            end
+                        end
+                    end
+                end
+
+                -- 4) Vòng lặp chạy liên tục cho đến khi tắt toggle
                 while getgenv().Settings.AutoGoalPacked do
                     autoGoalPacked()
-                    task.wait(0.1)    -- nghỉ 1s trước khi làm lại
+                    task.wait(1)  -- tránh gọi liên tục quá nhanh
                 end
             end)
         end
