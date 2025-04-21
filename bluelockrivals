@@ -105,7 +105,7 @@ local LegitTab = Window:CreateTab("Legit")
 local VisualTab = Window:CreateTab("👁️Visual")
 local OPTab = Window:CreateTab("⚔️OP")
 local StyleTab = Window:CreateTab("✨Style")
-
+local TeamTab = Window:CreateTab("Team")
 -- Khai báo các hàm phụ trợ
 local Function_Storage = {}
 
@@ -1270,6 +1270,39 @@ local Button = StyleTab:CreateButton({
    end,
 })
 
+-- Team Tab
+chosenTeam = nil
+
+TeamTab:CreateDropdown({
+    Name = "Auto Team",
+    Options = {"Home_LW", "Home_RW", "Home_CM", "Home_CF", "Home_GK", "Away_LW", "Away_RW", "Away_CM", "Away_CF", "Away_GK"},
+    CurrentOption = chosenTeam,
+    MultipleOptions = false,
+    Flag = "TeamDropdown",
+    Callback = function(Options) 
+        chosenTeam = Options[1]
+    end,
+})
+
+local Toggle = TeamTab:CreateToggle({
+    Name = "Auto Choose",
+    CurrentValue = false,
+    Flag = "AutoChooseToggle",
+    Callback = function(Value)
+        if Value and chosenTeam then
+            local teamSide, position = string.match(chosenTeam, "(%w+)_(%w+)")
+            if teamSide and position then
+                local args = {
+                    [1] = teamSide,
+                    [2] = position
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("Knit")
+                    :WaitForChild("Services"):WaitForChild("Packages"):WaitForChild("TeamService")
+                    :WaitForChild("RE"):WaitForChild("Select"):FireServer(unpack(args))
+            end
+        end
+    end,
+})
 
 
 -- Khởi động script
