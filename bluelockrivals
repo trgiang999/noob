@@ -1272,7 +1272,9 @@ local Button = StyleTab:CreateButton({
 
 -- Team Tab
 chosenTeam = nil
+autoChooseEnabled = false
 
+-- Dropdown chọn team
 TeamTab:CreateDropdown({
     Name = "Auto Team",
     Options = {"Home_LW", "Home_RW", "Home_CM", "Home_CF", "Home_GK", "Away_LW", "Away_RW", "Away_CM", "Away_CF", "Away_GK"},
@@ -1281,15 +1283,9 @@ TeamTab:CreateDropdown({
     Flag = "TeamDropdown",
     Callback = function(Options) 
         chosenTeam = Options[1]
-    end,
-})
-
-local Toggle = TeamTab:CreateToggle({
-    Name = "Auto Choose",
-    CurrentValue = false,
-    Flag = "AutoChooseToggle",
-    Callback = function(Value)
-        if Value and chosenTeam then
+        
+        -- Nếu toggle đang bật thì thực hiện FireServer ngay khi chọn team mới
+        if autoChooseEnabled and chosenTeam then
             local teamSide, position = string.match(chosenTeam, "(%w+)_(%w+)")
             if teamSide and position then
                 local args = {
@@ -1303,6 +1299,31 @@ local Toggle = TeamTab:CreateToggle({
         end
     end,
 })
+
+-- Toggle bật/tắt auto choose
+TeamTab:CreateToggle({
+    Name = "Auto Choose",
+    CurrentValue = false,
+    Flag = "AutoChooseToggle",
+    Callback = function(Value)
+        autoChooseEnabled = Value
+
+        -- Nếu bật toggle và đã chọn team thì thực hiện FireServer ngay lập tức
+        if autoChooseEnabled and chosenTeam then
+            local teamSide, position = string.match(chosenTeam, "(%w+)_(%w+)")
+            if teamSide and position then
+                local args = {
+                    [1] = teamSide,
+                    [2] = position
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("Knit")
+                    :WaitForChild("Services"):WaitForChild("Packages"):WaitForChild("TeamService")
+                    :WaitForChild("RE"):WaitForChild("Select"):FireServer(unpack(args))
+            end
+        end
+    end,
+})
+
 
 
 -- Khởi động script
