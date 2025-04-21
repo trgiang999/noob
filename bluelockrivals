@@ -802,9 +802,9 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
 
         if Value then
             task.spawn(function()
-                -- Hàm autoGoalLogic2 (tương tự autoGoalLogic nhưng có thể tùy chỉnh thêm)
+                -- Hàm autoGoalLogic2
                 local function autoGoalLogic2()
-                    print("autoGoalLogic2 called (Team:", player.Team.Name, ")")
+                    print("autoGoalLogic1 called (Team:", player.Team.Name, ")")
                     if player.Team.Name == "Visitor" then
                         print("Player is on Visitor team, returning.")
                         return
@@ -830,8 +830,27 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
 
                     if targetGoal then
                         if h and h.Value then
-                            print("Player has the ball, kicking.")
-                            Goto(humanoidrootpart.CFrame * CFrame.new(0, 50, 0), targetGoal, "Kick")
+                            print("Player has the ball, creating weld and kicking.")
+                            -- Create WeldConstraint between ball and HRP
+                            local ball = workspace:FindFirstChild("Football")
+                            if ball then
+                                local weld = Instance.new("WeldConstraint")
+                                weld.Part0 = humanoidrootpart
+                                weld.Part1 = ball
+                                weld.Parent = ball
+                                
+                                -- Call Kick Remote Event
+                                local kickEvent = game.ReplicatedStorage:FindFirstChild("KickEvent") -- Adjust path as needed
+                                if kickEvent then
+                                    kickEvent:FireServer(ball)
+                                end
+                                
+                                -- Teleport to opponent goal
+                                local goalPosition = workspace.Goals[targetGoal].Position
+                                local targetCFrame = CFrame.new(goalPosition + Vector3.new(0, 50, 0))
+                                humanoidrootpart.CFrame = targetCFrame
+                                print("Teleported to goal CFrame:", targetCFrame)
+                            end
                         else
                             local b = workspace:FindFirstChild("Football")
                             print("Found Football:", b)
