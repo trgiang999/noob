@@ -778,7 +778,7 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
 })
 
 local AutoGoalTestToggle = OPTab:CreateToggle({
-    Name = "Auto Goal (Testing)",
+    Name = "Auto Goal (New)",
     CurrentValue = false,
     Flag = "AutoGoalTest",
     Callback = function(Value)
@@ -791,7 +791,7 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
                 local RepStorage = game:GetService("ReplicatedStorage")
                 local player     = Players.LocalPlayer
 
-                -- 1) Tìm đối tượng chơi khác gần nhất có Football
+                -- 1) ClosestCharacter
                 local function ClosestCharacter(origin)
                     if not origin or not origin:FindFirstChild("HumanoidRootPart") then return nil end
                     local best, dist = nil, math.huge
@@ -824,28 +824,30 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
                     end
                 end
 
-                -- 3) Hàm gộp: lấy bóng → kick → weld → tp goal
-                local function autoGoalLogic3()
+                -- 3) Hàm gộp 4 bước
+                local function autoGoalPacked()
+                    -- không chạy khi ở team Visitor
                     if player.Team.Name == "Visitor" then return end
 
                     local char = player.Character or player.CharacterAdded:Wait()
                     local hrp  = char:FindFirstChild("HumanoidRootPart")
                     if not hrp then return end
 
-                    -- map team sang key Goals[]
                     local teamMap = { Away = "Away", Home = "Home" }
                     local goalKey = teamMap[player.Team.Name]
                     if not goalKey then return end
 
                     local ball = workspace:FindFirstChild("Football")
                     if ball then
-                        -- 1) Teleport tới bóng (offset y=3.5)
+                        -- 1) Teleport tới bóng
                         hrp.CFrame = ball.CFrame * CFrame.new(0, 3.5, 0)
+                        task.wait(0.1)
 
-                        -- 2) Kick vào goal
+                        -- 2) Kick
                         Goto(nil, goalKey, "Kick")
+                        task.wait(0.1)
 
-                        -- 3) Weld để bóng theo HRP
+                        -- 3) Weld cho bóng bám theo HRP
                         for _, w in ipairs(ball:GetChildren()) do
                             if w:IsA("WeldConstraint") then w:Destroy() end
                         end
@@ -854,18 +856,18 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
                         weld.Part1 = ball
                         weld.Parent = ball
 
-                        -- 4) Teleport người chơi lên gần goal (y +10)
+                        -- 4) Teleport người chơi lên goal
                         local goalPos = workspace.Goals[goalKey].Position
                         hrp.CFrame = CFrame.new(goalPos + Vector3.new(0, 10, 0))
 
-                        -- Hủy weld sau khi đến nơi
+                        -- Dọn weld sau khi đã đến goal
                         task.delay(0.5, function()
                             if weld and weld.Parent then
                                 weld:Destroy()
                             end
                         end)
                     else
-                        -- fallback: chạy Slide với player gần nhất có bóng
+                        -- fallback: dùng Slide với player gần nhất có bóng
                         local other = ClosestCharacter(char)
                         if other then
                             local fb = other:FindFirstChild("Football") or other:WaitForChild("Football", 5)
@@ -876,21 +878,16 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
                     end
                 end
 
-                -- 4) Kết nối và loop liên tục
-                player:GetPropertyChangedSignal("Team"):Connect(function()
-                    if getgenv().Settings.AutoGoalTestToggle then
-                        autoGoalLogic3()
-                    end
-                end)
-
+                -- 4) Vòng lặp duy nhất: chạy autoGoalPacked → đợi → lặp lại
                 while getgenv().Settings.AutoGoalTestToggle do
-                    autoGoalLogic3()
-                    task.wait(0.1)
+                    autoGoalPacked()
+                    task.wait(1)   -- đợi 1s trước khi chạy chu kỳ mới
                 end
             end)
         end
     end,
 })
+
 
 
 -- Input: save power value to getgenv() on change
