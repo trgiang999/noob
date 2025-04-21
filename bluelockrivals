@@ -694,22 +694,187 @@ OPTab:CreateToggle({
     end,
 })
 
--- Toggle Auto Goal Packed
-OPTab:CreateToggle({
-    Name = "Auto Goal Packed",
+local AutoGoalTestToggle = OPTab:CreateToggle({
+    Name = "Auto Goal (New)",
     CurrentValue = false,
-    Flag = "AutoGoalPacked",
+    Flag = "AutoGoalTest",
     Callback = function(Value)
         getgenv().Settings = getgenv().Settings or {}
-        getgenv().Settings.AutoGoalPacked = Value
+        getgenv().Settings.AutoGoalTestToggle = Value
 
         if Value then
             task.spawn(function()
-                local Players       = game:GetService("Players")
-                local RepStorage    = game:GetService("ReplicatedStorage")
-                local player        = Players.LocalPlayer
+                -- Hàm autoGoalLogic2 (tương tự autoGoalLogic nhưng có thể tùy chỉnh thêm)
+                local function autoGoalLogic2()
+                    print("autoGoalLogic2 called (Team:", player.Team.Name, ")")
+                    if player.Team.Name == "Visitor" then
+                        print("Player is on Visitor team, returning.")
+                        return
+                    end
 
-                -- 1) Tìm player gần nhất có bóng
+                    local character = player.Character
+                    if not character or not character:FindFirstChild("HumanoidRootPart") then
+                        print("Character or HumanoidRootPart not found.")
+                        return
+                    end
+                    local humanoidrootpart = character:WaitForChild("HumanoidRootPart")
+                    local humanoid = character:FindFirstChildOfClass("Humanoid")
+                    if not humanoid then
+                        print("Humanoid not found.")
+                        return
+                    end
+                    local v = character:FindFirstChild("Values") or character:WaitForChild("Values", 5)
+                    local h = v and (v:FindFirstChild("HasBall") or v:WaitForChild("HasBall", 5))
+                    local g = {["Away"] = "Away", ["Home"] = "Home"}
+
+                    local targetGoal = g[player.Team.Name]
+                    print("Target Goal:", targetGoal)
+
+                    if targetGoal then
+                        if h and h.Value then
+                            print("Player has the ball, kicking.")
+                            Goto(humanoidrootpart.CFrame * CFrame.new(0, 50, 0), targetGoal, "Kick")
+                        else
+                            local b = workspace:FindFirstChild("Football")
+                            print("Found Football:", b)
+                            if b then
+                                local targetCFrame = b.CFrame * CFrame.new(0, 3.5, 0)
+                                print("Target CFrame for Football:", targetCFrame)
+                                humanoidrootpart.CFrame = targetCFrame
+                                print("HumanoidRootPart CFrame set to:", targetCFrame)
+
+                                -- Teleport quả bóng đến gần targetGoal
+                                local goalPosition = workspace.Goals[targetGoal].Position
+                                local ballTargetPos = goalPosition + Vector3.new(0, 3.5, 10)
+                                b.CFrame = CFrame.new(ballTargetPos)
+                                print("Football teleported to:", ballTargetPos)
+                            else
+                                print("Football does not exist, trying to find closest player with ball.")
+                                local t = ClosestCharacter(character)
+                                print("Closest character:", t)
+                                local fb = t and t:FindFirstChild("Football") or (t and t:WaitForChild("Football", 5))
+                                print("Football of closest character:", fb)
+                                if fb then Goto(fb.CFrame, targetGoal, "Slide") end
+                            end
+                        end
+                    end
+                end
+
+                local function onTeamChanged()
+                    if getgenv().Settings.AutoGoalTestToggle then
+                        autoGoalLogic2()
+                    end
+                end
+
+                player:GetPropertyChangedSignal("Team"):Connect(onTeamChanged)
+
+                while getgenv().Settings.AutoGoalTestToggle do
+                    autoGoalLogic2()
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end,
+})
+
+local AutoGoalTestToggle = OPTab:CreateToggle({
+    Name = "Auto Goal (New)",
+    CurrentValue = false,
+    Flag = "AutoGoalTest",
+    Callback = function(Value)
+        getgenv().Settings = getgenv().Settings or {}
+        getgenv().Settings.AutoGoalTestToggle = Value
+
+        if Value then
+            task.spawn(function()
+                -- Hàm autoGoalLogic2 (tương tự autoGoalLogic nhưng có thể tùy chỉnh thêm)
+                local function autoGoalLogic2()
+                    print("autoGoalLogic2 called (Team:", player.Team.Name, ")")
+                    if player.Team.Name == "Visitor" then
+                        print("Player is on Visitor team, returning.")
+                        return
+                    end
+
+                    local character = player.Character
+                    if not character or not character:FindFirstChild("HumanoidRootPart") then
+                        print("Character or HumanoidRootPart not found.")
+                        return
+                    end
+                    local humanoidrootpart = character:WaitForChild("HumanoidRootPart")
+                    local humanoid = character:FindFirstChildOfClass("Humanoid")
+                    if not humanoid then
+                        print("Humanoid not found.")
+                        return
+                    end
+                    local v = character:FindFirstChild("Values") or character:WaitForChild("Values", 5)
+                    local h = v and (v:FindFirstChild("HasBall") or v:WaitForChild("HasBall", 5))
+                    local g = {["Away"] = "Away", ["Home"] = "Home"}
+
+                    local targetGoal = g[player.Team.Name]
+                    print("Target Goal:", targetGoal)
+
+                    if targetGoal then
+                        if h and h.Value then
+                            print("Player has the ball, kicking.")
+                            Goto(humanoidrootpart.CFrame * CFrame.new(0, 50, 0), targetGoal, "Kick")
+                        else
+                            local b = workspace:FindFirstChild("Football")
+                            print("Found Football:", b)
+                            if b then
+                                local targetCFrame = b.CFrame * CFrame.new(0, 3.5, 0)
+                                print("Target CFrame for Football:", targetCFrame)
+                                humanoidrootpart.CFrame = targetCFrame
+                                print("HumanoidRootPart CFrame set to:", targetCFrame)
+
+                                -- Teleport quả bóng đến gần targetGoal
+                                local goalPosition = workspace.Goals[targetGoal].Position
+                                local ballTargetPos = goalPosition + Vector3.new(0, 3.5, 10)
+                                b.CFrame = CFrame.new(ballTargetPos)
+                                print("Football teleported to:", ballTargetPos)
+                            else
+                                print("Football does not exist, trying to find closest player with ball.")
+                                local t = ClosestCharacter(character)
+                                print("Closest character:", t)
+                                local fb = t and t:FindFirstChild("Football") or (t and t:WaitForChild("Football", 5))
+                                print("Football of closest character:", fb)
+                                if fb then Goto(fb.CFrame, targetGoal, "Slide") end
+                            end
+                        end
+                    end
+                end
+
+                local function onTeamChanged()
+                    if getgenv().Settings.AutoGoalTestToggle then
+                        autoGoalLogic2()
+                    end
+                end
+
+                player:GetPropertyChangedSignal("Team"):Connect(onTeamChanged)
+
+                while getgenv().Settings.AutoGoalTestToggle do
+                    autoGoalLogic2()
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end,
+})
+
+local AutoGoalTestToggle = OPTab:CreateToggle({
+    Name = "Auto Goal (Testing)",
+    CurrentValue = false,
+    Flag = "AutoGoalTest",
+    Callback = function(Value)
+        getgenv().Settings = getgenv().Settings or {}
+        getgenv().Settings.AutoGoalTestToggle = Value
+
+        if Value then
+            task.spawn(function()
+                local Players    = game:GetService("Players")
+                local RepStorage = game:GetService("ReplicatedStorage")
+                local player     = Players.LocalPlayer
+
+                -- 1) Tìm đối tượng chơi khác gần nhất có Football
                 local function ClosestCharacter(origin)
                     if not origin or not origin:FindFirstChild("HumanoidRootPart") then return nil end
                     local best, dist = nil, math.huge
@@ -726,14 +891,13 @@ OPTab:CreateToggle({
                     return best
                 end
 
-                -- 2) Goto: teleport + remote-event slide/kick
+                -- 2) Goto: teleport + fire Slide/Kick
                 local function Goto(targetCFrame, goalKey, action)
                     local char = player.Character
                     local hrp  = char and char:FindFirstChild("HumanoidRootPart")
-                    if hrp then
+                    if hrp and targetCFrame then
                         hrp.CFrame = targetCFrame
                     end
-
                     if action == "Slide" then
                         RepStorage.Packages.Knit.Services.BallService.RE.Slide:FireServer()
                     elseif action == "Kick" and goalKey then
@@ -743,28 +907,28 @@ OPTab:CreateToggle({
                     end
                 end
 
-                -- 3) Hàm gộp: lấy bóng, đá, weld, teleport goal
-                local function autoGoalPacked()
+                -- 3) Hàm gộp: lấy bóng → kick → weld → tp goal
+                local function autoGoalLogic3()
                     if player.Team.Name == "Visitor" then return end
+
                     local char = player.Character or player.CharacterAdded:Wait()
-                    local hrp  = char:WaitForChild("HumanoidRootPart")
-                    local v    = char:FindFirstChild("Values") or char:WaitForChild("Values", 5)
-                    local h    = v and (v:FindFirstChild("HasBall") or v:WaitForChild("HasBall", 5))
+                    local hrp  = char:FindFirstChild("HumanoidRootPart")
+                    if not hrp then return end
+
+                    -- map team sang key Goals[]
                     local teamMap = { Away = "Away", Home = "Home" }
                     local goalKey = teamMap[player.Team.Name]
                     if not goalKey then return end
 
                     local ball = workspace:FindFirstChild("Football")
                     if ball then
-                        -- A) Nếu chưa có ball trong tay: teleport tới ball
-                        if not (h and h.Value) then
-                            local targetCF = ball.CFrame * CFrame.new(0, 3.5, 0)
-                            Goto(targetCF, nil, nil)
-                        end
+                        -- 1) Teleport tới bóng (offset y=3.5)
+                        hrp.CFrame = ball.CFrame * CFrame.new(0, 3.5, 0)
 
-                        -- B) Kick bóng
+                        -- 2) Kick vào goal
                         Goto(nil, goalKey, "Kick")
-                        -- C) Weld để bóng bám theo HRP
+
+                        -- 3) Weld để bóng theo HRP
                         for _, w in ipairs(ball:GetChildren()) do
                             if w:IsA("WeldConstraint") then w:Destroy() end
                         end
@@ -773,16 +937,18 @@ OPTab:CreateToggle({
                         weld.Part1 = ball
                         weld.Parent = ball
 
-                        -- D) Teleport người đến goal (gián tiếp qua weld)
+                        -- 4) Teleport người chơi lên gần goal (y +10)
                         local goalPos = workspace.Goals[goalKey].Position
                         hrp.CFrame = CFrame.new(goalPos + Vector3.new(0, 10, 0))
 
-                        -- Hủy weld sau khi đã đến nơi
+                        -- Hủy weld sau khi đến nơi
                         task.delay(0.5, function()
-                            if weld and weld.Parent then weld:Destroy() end
+                            if weld and weld.Parent then
+                                weld:Destroy()
+                            end
                         end)
                     else
-                        -- Nếu không có bóng: tìm người gần nhất rồi slide
+                        -- fallback: chạy Slide với player gần nhất có bóng
                         local other = ClosestCharacter(char)
                         if other then
                             local fb = other:FindFirstChild("Football") or other:WaitForChild("Football", 5)
@@ -793,76 +959,15 @@ OPTab:CreateToggle({
                     end
                 end
 
-                -- 4) Vòng lặp chạy liên tục cho đến khi tắt toggle
-                while getgenv().Settings.AutoGoalPacked do
-                    autoGoalPacked()
-                    task.wait(1)  -- tránh gọi liên tục quá nhanh
-                end
-            end)
-        end
-    end,
-})
-
-
-
-
-OPTab:CreateToggle({
-    Name = "Auto Goal Rush",
-    CurrentValue = false,
-    Flag = "AutoGoalRush",
-    Callback = function(Value)
-        local goalCFrame = CFrame.new(322.7972412109375, 11.166389465332031, -47.563377380371094)
-
-        getgenv().Settings = getgenv().Settings or {}
-        getgenv().Settings.AutoGoalRush = Value
-
-        if Value then
-            task.spawn(function()
-                local function autoGoalRushLogic()
-                    if player.Team.Name == "Visitor" then
-                        return
+                -- 4) Kết nối và loop liên tục
+                player:GetPropertyChangedSignal("Team"):Connect(function()
+                    if getgenv().Settings.AutoGoalTestToggle then
+                        autoGoalLogic3()
                     end
+                end)
 
-                    local character = player.Character
-                    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-                    local humanoidrootpart = character:WaitForChild("HumanoidRootPart")
-                    local humanoid = character:FindFirstChildOfClass("Humanoid")
-                    if not humanoid then return end
-
-                    local v = character:FindFirstChild("Values") or character:WaitForChild("Values", 5)
-                    local h = v and (v:FindFirstChild("HasBall") or v:WaitForChild("HasBall", 5))
-
-                    if h and h.Value then
-                        -- Đang giữ bóng, sút và teleport bóng tới vị trí cố định
-                        game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(100, nil, nil, goalCFrame.Position)
-                        task.wait(0.2)
-                        local ball = workspace:FindFirstChild("Football") or workspace:WaitForChild("Football", 5)
-                        if ball then
-                            local targetPos = (goalCFrame * CFrame.new(0, 0, 10)).Position
-                            repeat
-                                ball.CFrame = CFrame.new(targetPos)
-                                task.wait(0.1)
-                            until (ball.Position - targetPos).Magnitude < 0.2
-                        end
-                    else
-                        -- Không giữ bóng, di chuyển tới bóng
-                        local b = workspace:FindFirstChild("Football")
-                        if b then
-                            humanoidrootpart.CFrame = b.CFrame * CFrame.new(0, 3.5, 0)
-                        else
-                            -- Không thấy bóng, tìm player gần nhất có bóng
-                            local t = ClosestCharacter(character)
-                            local fb = t and t:FindFirstChild("Football") or (t and t:WaitForChild("Football", 5))
-                            if fb then
-                                humanoidrootpart.CFrame = fb.CFrame
-                                game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Slide:FireServer()
-                            end
-                        end
-                    end
-                end
-
-                while getgenv().Settings.AutoGoalRush do
-                    autoGoalRushLogic()
+                while getgenv().Settings.AutoGoalTestToggle do
+                    autoGoalLogic3()
                     task.wait(0.1)
                 end
             end)
@@ -870,18 +975,6 @@ OPTab:CreateToggle({
     end,
 })
 
-
--- Keybind: use the saved power value from getgenv()
-local Keybind = OPTab:CreateKeybind({ 
-   Name = "Shoot Ball",
-   CurrentKeybind = "Z",
-   HoldToInteract = false,
-   Flag = "KeybindShoot", 
-   Callback = function()
-      local power = getgenv().PowerShootValue or 100
-      game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(power)
-   end,
-})
 
 -- Input: save power value to getgenv() on change
 local Input = OPTab:CreateInput({ 
