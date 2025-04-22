@@ -785,37 +785,20 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
         getgenv().Settings = getgenv().Settings or {}
         getgenv().Settings.AutoGoalTestToggle = Value
 
-        local Players       = game:GetService("Players")
-        local RepStorage    = game:GetService("ReplicatedStorage")
-        local TweenService  = game:GetService("TweenService")
-        local player        = Players.LocalPlayer
+        local Players      = game:GetService("Players")
+        local RepStorage   = game:GetService("ReplicatedStorage")
+        local TweenService = game:GetService("TweenService")
+        local player       = Players.LocalPlayer
 
-        -- helper: tween hrp đến targetCFrame trong duration giây
+        -- tween helper
         local function tweenTo(hrp, targetCFrame, duration)
-            local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-            local tween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame})
-            tween:Play()
-            tween.Completed:Wait()
+            local info  = TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+            local tw    = TweenService:Create(hrp, info, {CFrame = targetCFrame})
+            tw:Play()
+            tw.Completed:Wait()
         end
 
-        -- ClosestCharacter (unchanged)
-        local function ClosestCharacter(origin)
-            if not origin or not origin:FindFirstChild("HumanoidRootPart") then return end
-            local best, dist = nil, math.huge
-            for _, m in ipairs(workspace:GetDescendants()) do
-                if m:IsA("Model")
-                and m ~= origin
-                and m:FindFirstChild("Humanoid")
-                and m:FindFirstChild("HumanoidRootPart")
-                and m:FindFirstChild("Football") then
-                    local d = (origin.HumanoidRootPart.Position - m.HumanoidRootPart.Position).Magnitude
-                    if d < dist then best, dist = m, d end
-                end
-            end
-            return best
-        end
-
-        -- Goto: chỉ fire server (move thì dùng tweenTo)
+        -- Slide/Kick fire server
         local function Goto(goalKey, action)
             if action == "Slide" then
                 RepStorage.Packages.Knit.Services.BallService.RE.Slide:FireServer()
@@ -826,7 +809,7 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
             end
         end
 
-        -- Hàm gộp 4 bước mượt
+        -- main logic (gộp 4 bước)
         local function autoGoalPacked()
             if player.Team.Name == "Visitor" then return end
 
@@ -839,34 +822,24 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
             if not goalKey then return end
 
             local ball = workspace:FindFirstChild("Football")
-            if ball then
-                -- 1) Smooth tới bóng
-                tweenTo(hrp, ball.CFrame * CFrame.new(0, 3.5, 0), 0.2)
+            if not ball then return end
 
-                -- 2) Kick
-                Goto(goalKey, "Kick")
-                task.wait(0.05)
+            -- 1) Tween tới bóng
+            tweenTo(hrp, ball.CFrame * CFrame.new(0, 3.5, 0), 0.2)
 
-                -- 3) Weld để bóng theo HRP
-                local weld = Instance.new("WeldConstraint")
-                weld.Part0 = hrp
-                weld.Part1 = ball
-                weld.Parent = hrp
+            -- 2) Weld bóng vào HRP
+            local weld = Instance.new("WeldConstraint")
+            weld.Part0 = hrp
+            weld.Part1 = ball
+            weld.Parent = hrp
 
-                -- 4) Smooth tới goal
-                local goalCFrame = CFrame.new(workspace.Goals[goalKey].Position + Vector3.new(0, 10, 0))
-                tweenTo(hrp, goalCFrame, 0.25)
-            else
-                -- fallback slide
-                local other = ClosestCharacter(char)
-                if other then
-                    local fb = other:FindFirstChild("Football") or other:WaitForChild("Football", 5)
-                    if fb then
-                        tweenTo(hrp, fb.CFrame * CFrame.new(0, 3.5, 0), 0.2)
-                        Goto(nil, "Slide")
-                    end
-                end
-            end
+            -- 3) Kick ngay sau khi weld
+            Goto(goalKey, "Kick")
+            task.wait(0.05)
+
+            -- 4) Tween tới goal
+            local goalCFrame = CFrame.new(workspace.Goals[goalKey].Position + Vector3.new(0, 10, 0))
+            tweenTo(hrp, goalCFrame, 0.25)
         end
 
         if Value then
@@ -877,7 +850,7 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
                 end
             end)
         else
-            -- khi tắt toggle thì xóa weld nếu còn
+            -- tắt toggle: xóa weld (nếu còn)
             local ball = workspace:FindFirstChild("Football")
             if ball then
                 for _, w in ipairs(ball:GetChildren()) do
@@ -889,6 +862,7 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
         end
     end,
 })
+
 
 
 
