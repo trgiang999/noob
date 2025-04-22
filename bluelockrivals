@@ -846,7 +846,6 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
             task.spawn(function()
                 while getgenv().Settings.AutoGoalTestToggle do
                     autoGoalPacked()
-                    task.wait(0.3)
                 end
             end)
         else
