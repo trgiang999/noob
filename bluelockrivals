@@ -778,89 +778,78 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
 })
 
 local AutoGoalTestToggle = OPTab:CreateToggle({
-    Name = "Auto Goal (New)",
+    Name = "Auto Goal (test)",
     CurrentValue = false,
     Flag = "AutoGoalTest",
     Callback = function(Value)
         getgenv().Settings = getgenv().Settings or {}
         getgenv().Settings.AutoGoalTestToggle = Value
 
-        local Players      = game:GetService("Players")
-        local RepStorage   = game:GetService("ReplicatedStorage")
-        local TweenService = game:GetService("TweenService")
-        local player       = Players.LocalPlayer
-
-        -- tween helper
-        local function tweenTo(hrp, targetCFrame, duration)
-            local info  = TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-            local tw    = TweenService:Create(hrp, info, {CFrame = targetCFrame})
-            tw:Play()
-            tw.Completed:Wait()
-        end
-
-        -- Slide/Kick fire server
-        local function Goto(goalKey, action)
-            if action == "Slide" then
-                RepStorage.Packages.Knit.Services.BallService.RE.Slide:FireServer()
-            elseif action == "Kick" and goalKey then
-                RepStorage.Packages.Knit.Services.BallService.RE.Shoot:FireServer(
-                    100, nil, nil, workspace.Goals[goalKey].Position
-                )
-            end
-        end
-
-        -- main logic (gộp 4 bước)
-        local function autoGoalPacked()
-            if player.Team.Name == "Visitor" then return end
-
-            local char = player.Character or player.CharacterAdded:Wait()
-            local hrp  = char:FindFirstChild("HumanoidRootPart")
-            if not hrp then return end
-
-            local teamMap = { Away = "Away", Home = "Home" }
-            local goalKey = teamMap[player.Team.Name]
-            if not goalKey then return end
-
-            local ball = workspace:FindFirstChild("Football")
-            if not ball then return end
-
-            -- 1) Tween tới bóng
-            tweenTo(hrp, ball.CFrame * CFrame.new(0, 3.5, 0), 0.2)
-
-            -- 2) Weld bóng vào HRP
-            local weld = Instance.new("WeldConstraint")
-            weld.Part0 = hrp
-            weld.Part1 = ball
-            weld.Parent = hrp
-
-            -- 3) Kick ngay sau khi weld
-            Goto(goalKey, "Kick")
-            task.wait(0.05)
-
-            -- 4) Tween tới goal
-            local goalCFrame = CFrame.new(workspace.Goals[goalKey].Position + Vector3.new(0, 10, 0))
-            tweenTo(hrp, goalCFrame, 0.25)
-        end
+        local Players           = game:GetService("Players")
+        local RunService        = game:GetService("RunService")
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local player            = Players.LocalPlayer
 
         if Value then
-            task.spawn(function()
-                while getgenv().Settings.AutoGoalTestToggle do
-                    autoGoalPacked()
+            -- Start a per-frame loop for maximum speed
+            getgenv().AutoGoalConnection = RunService.Heartbeat:Connect(function()
+                local char = player.Character
+                if not char then return end
+
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                if not hrp then return end
+
+                local ball = workspace:FindFirstChild("Football")
+                if not (ball and ball:IsA("BasePart")) then return end
+
+                -- Determine opponent goal
+                local goalKey = (player.Team.Name == "Home" and "Away") or (player.Team.Name == "Away" and "Home")
+                local goalPart = workspace:FindFirstChild("Goals") and workspace.Goals:FindFirstChild(goalKey)
+                if not goalPart then return end
+
+                -- 1) Weld ball to HRP (if not already)
+                if not hrp:FindFirstChild("AutoGoalWeld") then
+                    local weld = Instance.new("WeldConstraint")
+                    weld.Name  = "AutoGoalWeld"
+                    weld.Part0 = hrp
+                    weld.Part1 = ball
+                    weld.Parent = hrp
                 end
+
+                -- 2) Move ball to arbitrary CFrame (gets pulled to HRP by weld)
+                ball.CFrame = CFrame.new(0, 0, 0)
+
+                -- 3) Teleport player (HRP) to the same spot
+                hrp.CFrame = CFrame.new(0, 0, 0)
+
+                -- 4) Kick
+                ReplicatedStorage.Packages.Knit.Services.BallService.RE.Shoot:FireServer(
+                    100, nil, nil, goalPart.Position
+                )
+
+                -- 5) Teleport player to opponent goal
+                hrp.CFrame = CFrame.new(goalPart.Position + Vector3.new(0, 5, 0))
             end)
         else
-            -- tắt toggle: xóa weld (nếu còn)
+            -- Stop the loop
+            if getgenv().AutoGoalConnection then
+                getgenv().AutoGoalConnection:Disconnect()
+                getgenv().AutoGoalConnection = nil
+            end
+
+            -- Cleanup weld
             local ball = workspace:FindFirstChild("Football")
             if ball then
-                for _, w in ipairs(ball:GetChildren()) do
-                    if w:IsA("WeldConstraint") then
-                        w:Destroy()
-                    end
+                local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    local weld = hrp:FindFirstChild("AutoGoalWeld")
+                    if weld then weld:Destroy() end
                 end
             end
         end
     end,
 })
+
 
 
 
