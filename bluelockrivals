@@ -787,11 +787,9 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
 
         local Players           = game:GetService("Players")
         local RunService        = game:GetService("RunService")
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
         local player            = Players.LocalPlayer
 
         if Value then
-            -- Start a per-frame loop for maximum speed
             getgenv().AutoGoalConnection = RunService.Heartbeat:Connect(function()
                 local char = player.Character
                 if not char then return end
@@ -802,55 +800,54 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
                 local ball = workspace:FindFirstChild("Football")
                 if not (ball and ball:IsA("BasePart")) then return end
 
-                -- Determine opponent goal
+                -- Xác định goal của đối thủ
                 local goalKey = (player.Team.Name == "Home" and "Away") or (player.Team.Name == "Away" and "Home")
                 local goalPart = workspace:FindFirstChild("Goals") and workspace.Goals:FindFirstChild(goalKey)
                 if not goalPart then return end
 
-                -- 1) Weld ball to HRP (if not already)
-                if not hrp:FindFirstChild("AutoGoalWeld") then
+                -- 1) TP đến bóng
+                hrp.CFrame = ball.CFrame * CFrame.new(0, 0, 0)
+
+                -- 2) Weld bóng vào HRP (nếu chưa weld)
+                if not ball:FindFirstChild("AutoGoalWeld") then
                     local weld = Instance.new("WeldConstraint")
                     weld.Name  = "AutoGoalWeld"
-                    weld.Part0 = hrp
-                    weld.Part1 = ball
-                    weld.Parent = hrp
+                    weld.Part0 = ball
+                    weld.Part1 = hrp
+                    weld.Parent = ball
                 end
 
-                -- 2) Move ball to arbitrary CFrame (gets pulled to HRP by weld)
-                ball.CFrame = CFrame.new(0, 0, 0)
-
-                -- 3) Teleport player (HRP) to the same spot
-                hrp.CFrame = CFrame.new(0, 0, 0)
-
-                -- 4) Kick
-                ReplicatedStorage.Packages.Knit.Services.BallService.RE.Shoot:FireServer(
-                    100, nil, nil, goalPart.Position
-                )
-
-                -- 5) Teleport player to opponent goal
+                -- 3) TP bản thân đến goal đối thủ
                 hrp.CFrame = CFrame.new(goalPart.Position + Vector3.new(0, 5, 0))
+
+                -- 4) Unweld và weld liên tục
+                if ball:FindFirstChild("AutoGoalWeld") then
+                    ball.AutoGoalWeld:Destroy()
+                end
+
+                local newWeld = Instance.new("WeldConstraint")
+                newWeld.Name  = "AutoGoalWeld"
+                newWeld.Part0 = ball
+                newWeld.Part1 = hrp
+                newWeld.Parent = ball
             end)
         else
-            -- Stop the loop
             if getgenv().AutoGoalConnection then
                 getgenv().AutoGoalConnection:Disconnect()
                 getgenv().AutoGoalConnection = nil
             end
 
-            -- Cleanup weld
+            -- Xoá weld nếu tồn tại
             local ball = workspace:FindFirstChild("Football")
             if ball then
-                local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    local weld = hrp:FindFirstChild("AutoGoalWeld")
-                    if weld then weld:Destroy() end
+                local weld = ball:FindFirstChild("AutoGoalWeld")
+                if weld then
+                    weld:Destroy()
                 end
             end
         end
     end,
 })
-
-
 
 
 
