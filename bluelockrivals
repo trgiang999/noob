@@ -785,48 +785,61 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
         getgenv().Settings = getgenv().Settings or {}
         getgenv().Settings.AutoGoalTestToggle = Value
 
-        local Players           = game:GetService("Players")
-        local RunService        = game:GetService("RunService")
-        local player            = Players.LocalPlayer
+        local Players = game:GetService("Players")
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local RunService = game:GetService("RunService")
+        local player = Players.LocalPlayer
+
+        -- RemoteEvent kick (sửa tên nếu khác game bạn)
+        local kickRE = ReplicatedStorage:FindFirstChild("KickRemote") or ReplicatedStorage:FindFirstChild("Remotes"):FindFirstChild("Kick")
 
         if Value then
             getgenv().AutoGoalConnection = RunService.Heartbeat:Connect(function()
                 local char = player.Character
                 if not char then return end
-
                 local hrp = char:FindFirstChild("HumanoidRootPart")
                 if not hrp then return end
 
+                local values = char:FindFirstChild("Values")
+                local hasBall = values and values:FindFirstChild("HasBall")
                 local ball = workspace:FindFirstChild("Football")
-                if not (ball and ball:IsA("BasePart")) then return end
+                if not ball then return end
 
-                -- Xác định goal của đối thủ
-                local goalKey = (player.Team.Name == "Home" and "Away") or (player.Team.Name == "Away" and "Home")
-                local goalPart = workspace:FindFirstChild("Goals") and workspace.Goals:FindFirstChild(goalKey)
-                if not goalPart then return end
+                local goals = workspace:FindFirstChild("Goals")
+                if not goals then return end
+                local targetGoalName = player.Team.Name == "Home" and "Away" or "Home"
+                local targetGoal = goals:FindFirstChild(targetGoalName)
+                if not targetGoal then return end
 
-                -- 1) TP đến bóng
-                hrp.CFrame = ball.CFrame * CFrame.new(0, 0, 0)
+                -- Nếu chưa có bóng → TP đến bóng
+                if hasBall and not hasBall.Value then
+                    hrp.CFrame = ball.CFrame
+                end
 
-                -- 2) Weld bóng vào HRP (nếu chưa weld)
+                -- Nếu có bóng → gọi RemoteEvent kick liên tục
+                if hasBall and hasBall.Value and kickRE then
+                    kickRE:FireServer()
+                end
+
+                -- Weld bóng vào HRP nếu chưa weld
                 if not ball:FindFirstChild("AutoGoalWeld") then
                     local weld = Instance.new("WeldConstraint")
-                    weld.Name  = "AutoGoalWeld"
+                    weld.Name = "AutoGoalWeld"
                     weld.Part0 = ball
                     weld.Part1 = hrp
                     weld.Parent = ball
                 end
 
-                -- 3) TP bản thân đến goal đối thủ
-                hrp.CFrame = CFrame.new(goalPart.Position + Vector3.new(0, 5, 0))
+                -- TP bản thân đến goal đối thủ (để kéo bóng theo bằng weld)
+                hrp.CFrame = CFrame.new(targetGoal.Position + Vector3.new(0, 5, 0))
 
-                -- 4) Unweld và weld liên tục
-                if ball:FindFirstChild("AutoGoalWeld") then
-                    ball.AutoGoalWeld:Destroy()
+                -- Unweld + Weld liên tục
+                local existingWeld = ball:FindFirstChild("AutoGoalWeld")
+                if existingWeld then
+                    existingWeld:Destroy()
                 end
-
                 local newWeld = Instance.new("WeldConstraint")
-                newWeld.Name  = "AutoGoalWeld"
+                newWeld.Name = "AutoGoalWeld"
                 newWeld.Part0 = ball
                 newWeld.Part1 = hrp
                 newWeld.Parent = ball
@@ -837,7 +850,7 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
                 getgenv().AutoGoalConnection = nil
             end
 
-            -- Xoá weld nếu tồn tại
+            -- Xoá weld nếu tồn tại khi tắt toggle
             local ball = workspace:FindFirstChild("Football")
             if ball then
                 local weld = ball:FindFirstChild("AutoGoalWeld")
@@ -848,10 +861,6 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
         end
     end,
 })
-
-
-
-
 
 -- Input: save power value to getgenv() on change
 local Input = OPTab:CreateInput({ 
