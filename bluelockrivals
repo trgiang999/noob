@@ -778,8 +778,8 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
 })
 
 -- Auto Goal (test) mới theo thứ tự:
--- 1. TP HRP đến bóng liên tục (gắn chặt HRP vào bóng)
--- 2. TP đến goal đối thủ
+-- 1. TP HRP đến bóng (gắn chặt HRP vào bóng)
+-- 2. Khi có bóng, TP đến goal đối thủ
 -- 3. Kick
 -- 4. Anchor bóng
 
@@ -820,29 +820,28 @@ OPTab:CreateToggle({
 
         if Value then
             task.spawn(function()
-                while getgenv().Settings.AutoGoalTestToggle do
-                    local character = player.Character
-                    local hrp = character and character:FindFirstChild("HumanoidRootPart")
-                    local ball = getFootball()
-                    local goalPos = getGoalPosition()
+                local character = player.Character
+                local hrp = character and character:FindFirstChild("HumanoidRootPart")
+                local goalPos = getGoalPosition()
 
-                    if hrp and ball and goalPos then
-                        -- Gắn HRP vào bóng (liên tục TP HRP đến bóng)
+                if not character or not hrp or not goalPos then return end
+
+                -- TP đến bóng và giữ cố định HRP tại bóng
+                local ball = getFootball()
+                while getgenv().Settings.AutoGoalTestToggle and not getHasBall() do
+                    ball = getFootball()
+                    if ball then
                         hrp.CFrame = ball.CFrame * CFrame.new(0, 0, 0.1)
-
-                        if getHasBall() then
-                            -- TP đến goal đối thủ
-                            hrp.CFrame = CFrame.new(goalPos)
-
-                            -- Kick bóng
-                            BallService.Shoot:FireServer(100)
-
-                            -- Anchor bóng
-                            task.wait(0.05)
-                            ball.Anchored = true
-                        end
                     end
+                    task.wait()
+                end
+
+                -- Khi có bóng, thực hiện các hành động một mạch
+                if getHasBall() and ball then
+                    hrp.CFrame = CFrame.new(goalPos)
+                    BallService.Shoot:FireServer(100)
                     task.wait(0.05)
+                    ball.Anchored = true
                 end
             end)
         else
