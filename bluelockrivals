@@ -777,7 +777,40 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
     end,
 })
 
-local AutoGoalTestToggle = OPTab:CreateToggle({
+-- Auto Goal (test) mới theo thứ tự:
+-- 1. TP HRP đến bóng liên tục (gắn chặt HRP vào bóng)
+-- 2. TP đến goal đối thủ
+-- 3. Kick
+-- 4. Anchor bóng
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local BallService = ReplicatedStorage.Packages.Knit.Services.BallService.RE
+local player = Players.LocalPlayer
+
+local function getFootball()
+    return workspace:FindFirstChild("Football")
+end
+
+local function getHasBall()
+    local char = player.Character
+    if not char then return false end
+    local v = char:FindFirstChild("Values")
+    if not v then return false end
+    local h = v:FindFirstChild("HasBall")
+    return h and h.Value
+end
+
+local function getGoalPosition()
+    local team = player.Team.Name
+    if team == "Home" then
+        return Vector3.new(322.03546142578125, 11.166389465332031, -48.20573425292969)
+    elseif team == "Away" then
+        return Vector3.new(-248.00906372070312, 11.166389465332031, -51.0702018737793)
+    end
+end
+
+OPTab:CreateToggle({
     Name = "Auto Goal (test)",
     CurrentValue = false,
     Flag = "AutoGoalTest",
@@ -785,102 +818,42 @@ local AutoGoalTestToggle = OPTab:CreateToggle({
         getgenv().Settings = getgenv().Settings or {}
         getgenv().Settings.AutoGoalTestToggle = Value
 
-        local Players = game:GetService("Players")
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        local RunService = game:GetService("RunService")
-        local player = Players.LocalPlayer
-
-        -- RemoteEvent kick (sửa tên nếu khác game bạn)
-        local kickRE = ReplicatedStorage:FindFirstChild("KickRemote") or ReplicatedStorage:FindFirstChild("Remotes"):FindFirstChild("Kick")
-
         if Value then
-            getgenv().AutoGoalConnection = RunService.Heartbeat:Connect(function()
-                local char = player.Character
-                if not char then return end
-                local hrp = char:FindFirstChild("HumanoidRootPart")
-                if not hrp then return end
+            task.spawn(function()
+                while getgenv().Settings.AutoGoalTestToggle do
+                    local character = player.Character
+                    local hrp = character and character:FindFirstChild("HumanoidRootPart")
+                    local ball = getFootball()
+                    local goalPos = getGoalPosition()
 
-                local values = char:FindFirstChild("Values")
-                local hasBall = values and values:FindFirstChild("HasBall")
-                local ball = workspace:FindFirstChild("Football")
-                if not ball then return end
+                    if hrp and ball and goalPos then
+                        -- Gắn HRP vào bóng (liên tục TP HRP đến bóng)
+                        hrp.CFrame = ball.CFrame * CFrame.new(0, 0, 0.1)
 
-                local goals = workspace:FindFirstChild("Goals")
-                if not goals then return end
-                local targetGoalName = player.Team.Name == "Home" and "Away" or "Home"
-                local targetGoal = goals:FindFirstChild(targetGoalName)
-                if not targetGoal then return end
+                        if getHasBall() then
+                            -- TP đến goal đối thủ
+                            hrp.CFrame = CFrame.new(goalPos)
 
-                -- Nếu chưa có bóng → TP đến bóng
-                if hasBall and not hasBall.Value then
-                    hrp.CFrame = ball.CFrame
+                            -- Kick bóng
+                            BallService.Shoot:FireServer(100)
+
+                            -- Anchor bóng
+                            task.wait(0.05)
+                            ball.Anchored = true
+                        end
+                    end
+                    task.wait(0.05)
                 end
-
-                -- Nếu có bóng → gọi RemoteEvent kick liên tục
-                if hasBall and hasBall.Value and kickRE then
-                    kickRE:FireServer()
-                end
-
-                -- Weld bóng vào HRP nếu chưa weld
-                if not ball:FindFirstChild("AutoGoalWeld") then
-                    local weld = Instance.new("WeldConstraint")
-                    weld.Name = "AutoGoalWeld"
-                    weld.Part0 = ball
-                    weld.Part1 = hrp
-                    weld.Parent = ball
-                end
-
-                -- TP bản thân đến goal đối thủ (để kéo bóng theo bằng weld)
-                hrp.CFrame = CFrame.new(targetGoal.Position + Vector3.new(0, 5, 0))
-
-                -- Unweld + Weld liên tục
-                local existingWeld = ball:FindFirstChild("AutoGoalWeld")
-                if existingWeld then
-                    existingWeld:Destroy()
-                end
-                local newWeld = Instance.new("WeldConstraint")
-                newWeld.Name = "AutoGoalWeld"
-                newWeld.Part0 = ball
-                newWeld.Part1 = hrp
-                newWeld.Parent = ball
             end)
         else
-            if getgenv().AutoGoalConnection then
-                getgenv().AutoGoalConnection:Disconnect()
-                getgenv().AutoGoalConnection = nil
-            end
-
-            -- Xoá weld nếu tồn tại khi tắt toggle
-            local ball = workspace:FindFirstChild("Football")
+            -- Bỏ Anchor khi tắt
+            local ball = getFootball()
             if ball then
-                local weld = ball:FindFirstChild("AutoGoalWeld")
-                if weld then
-                    weld:Destroy()
-                end
+                ball.Anchored = false
             end
         end
     end,
 })
-
--- Input: save power value to getgenv() on change
-local Input = OPTab:CreateInput({ 
-   Name = "Power", 
-   CurrentValue = 100, 
-   PlaceholderText = "Enter power",
-   RemoveTextAfterFocusLost = false,
-   Flag = "PowerShoot", 
-   Callback = function(Text)
-      local power = tonumber(Text)
-      if power then
-         getgenv().PowerShootValue = power
-      else
-         warn("Invalid power input, keeping previous value or defaulting to 100")
-         getgenv().PowerShootValue = 100
-      end
-   end,
-})
-
-
 
 
 local TrollTab = Window:CreateTab("😈Troll") -- Title, Image
