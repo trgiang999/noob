@@ -832,6 +832,7 @@ OPTab:CreateToggle({
                     ball = getFootball()
                     if ball then
                         hrp.CFrame = ball.CFrame * CFrame.new(0, 0, 0.1)
+                        ball.Anchored = false
                     end
                     task.wait()
                 end
