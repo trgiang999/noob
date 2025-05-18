@@ -138,7 +138,7 @@ local WalkSpeedToggle = LegitTab:CreateToggle({
     Flag = "WalkSpeedToggle",
     Callback = function(Value)
         task.spawn(function()
-            if Value then
+            while Value do
                 Debris_Variables.WalkSpeedToggle.WalkSpeedConnect = humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
                     if humanoid.WalkSpeed ~= tonumber(Rayfield.Flags["WalkSpeedInput"].CurrentValue) then
                         humanoid.WalkSpeed = tonumber(Rayfield.Flags["WalkSpeedInput"].CurrentValue)
