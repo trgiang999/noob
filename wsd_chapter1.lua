@@ -2,7 +2,7 @@
 local OrionLib = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"
 ))()
-print('6:34PM')
+print('5:57PM')
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
 local Players    = game:GetService("Players")
@@ -235,7 +235,6 @@ local ViewTab = Window:MakeTab({
 -- ═════════════════════════════════════════════════════════════════════════════
 ViewTab:AddDivider({Text = "ESP"})
 ViewTab:AddSection({Name="ESP"})
-local highlight = dad:FindFirstChild("DadHighlight")
 local state = 0 
 -- 0 = chưa có
 -- 1 = đang hiển thị đỏ
@@ -243,7 +242,7 @@ local state = 0
 
 local function dadEsp()
     if not pcall(function()
-        dad = workspace.Game.dad.PossesedDad
+        workspace.Game.dad.PossesedDad
     end) then
         OrionLib:MakeNotification({
             Name    = "Error!",                          -- Tiêu đề thông báo
@@ -254,6 +253,8 @@ local function dadEsp()
         return
     end
     local dad = workspace.Game.dad.PossesedDad
+    local highlight = dad:FindFirstChild("DadHighlight")
+
     if not highlight then
 		-- Bật lần 1: tạo highlight đỏ
 		highlight = Instance.new("Highlight")
