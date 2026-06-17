@@ -7,8 +7,11 @@ print('5:57PM')
 local Lighting = game:GetService("Lighting")
 local Players    = game:GetService("Players")
 local player     = Players.LocalPlayer
-local char       = player.Character or player.CharacterAdded:Wait()
-local hrp        = char:WaitForChild("HumanoidRootPart")
+local char = player.Character
+if not char or not char:FindFirstChild("HumanoidRootPart") then
+    char = player.CharacterAdded:Wait()
+end
+local hrp = char:WaitForChild("HumanoidRootPart", 10) -- Giới hạn đợi tối đa 10 giây tránh treo script
 local camera     = workspace.CurrentCamera
 
 -- ── Helper: Equip tool từ Backpack theo tên ───────────────────────────────────
