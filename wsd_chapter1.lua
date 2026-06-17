@@ -1,6 +1,5 @@
 -- ── Khởi động thư viện Orion ──────────────────────────────────────────────────
 local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"))()
-print('9:58PM')
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
 local Players    = game:GetService("Players")
@@ -246,39 +245,23 @@ MainTab:AddButton({
 -- ═════════════════════════════════════════════════════════════════════════════
 MainTab:AddDivider()
 MainTab:AddSection({Name="Statistics"})
---Generator-----------
-local fuelValue = MainTab:AddLabel("Generator's fuel: nil") --generator bar's value
-local generatorBar = workspace.House.Generator.Bar
+local function createStatLabel(text, valueObject)
+    local label = MainTab:AddLabel(("%s: nil"):format(text))
 
-local function onFuelChanged(newValue)
-    fuelValue:Set("Generator's fuel:".. newValue .."/100")
+    local function update(value)
+        label:Set(("%s: %d/100"):format(text, value))
+    end
+
+    valueObject.Changed:Connect(update)
+    update(valueObject.Value)
+
+    return label
 end
-generatorBar.Changed:Connect(onFuelChanged)
-onFuelChanged(generatorBar.Value)
---Thirst
-local thirstValue = MainTab:AddLabel("Player's thirst: nil")
-local thirstBar = player.Thirst
-local function onThirstChanged(newValue)
-    thirstValue:Set("Player's thirst:" .. newValue .. "/100")
-end
-thirstBar.Changed:Connect(onThirstChanged)
-onThirstChanged(thirstBar.Value)
---Hunger
-local hungerValue = MainTab:AddLabel("Player's hunger: nil")
-local hungerBar = player.Hunger
-local function onHungerChanged(newValue)
-    hungerValue:Set("Player's hunger:" .. newValue .. "/100")
-end
-hungerBar.Changed:Connect(onHungerChanged)
-onHungerChanged(hungerBar.Value)
---Energy    
-local energyValue = MainTab:AddLabel("Player's energy: nil")
-local energyBar = player.Hunger
-local function onEnergyChanged(newValue)
-    energyValue:Set("Player's Energy:" .. newValue .. "/100")
-end
-energyBar.Changed:Connect(onEnergyChanged)
-onEnergyChanged(energyBar.Value)
+
+createStatLabel("Generator's fuel", workspace.House.Generator.Bar)
+createStatLabel("Player's thirst", player.Thirst)
+createStatLabel("Player's hunger", player.Hunger)
+createStatLabel("Player's energy", player.Energy)
 
 -- ═════════════════════════════════════════════════════════════════════════════
 --  TAB: VIEWING
