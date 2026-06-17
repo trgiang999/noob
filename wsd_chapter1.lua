@@ -212,7 +212,7 @@ local function tpToBed()
     hrp.CFrame = CFrame.new(Vector3.new(-126, 19, 42))
 end
 MainTab:AddSection({name="Teleport"})
-MainTab.AddButton({
+MainTab:AddButton({
     Name = "Teleport to Bed",
     Visible = true,
     Disabled = false,
