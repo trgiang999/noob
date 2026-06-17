@@ -103,6 +103,8 @@ local function getAndEatCookedNoodles()
     local originalCFrame = hrp.CFrame
     -- [Bước 1] Lấy mì sống từ tủ lạnh ──────────────────────────────────────
     tpLookAt(hrp.Position, fridge.Position)   -- TP đến fridge, nhìn vào fridge
+    task.wait(1)
+    print('--updatedv')
     firePrompt(fridge.ProximityPrompt)            -- Mở tủ lạnh
     equipTool("Raw Noodle")                       -- Cầm mì sống trong Backpack
     task.wait(0.7)
@@ -112,7 +114,7 @@ local function getAndEatCookedNoodles()
     firePrompt(stove.ProximityPrompt)             -- Bật bếp / nấu
     equipTool("Cooked Noodle")                    -- Cầm mì chín trong Backpack
     task.wait(0.7)
-    
+
     -- [Bước 3] Đặt mì lên đĩa ───────────────────────────────────────────────
     local plate = getPlate()                      -- Lấy object đĩa
     tpLookAt(hrp.Position, plate.Position)      -- TP đến đĩa, nhìn vào đĩa
