@@ -377,7 +377,7 @@ local function onHungerChanged(newValue)
     hungerValue:Set("Player's hunger:" .. newValue .. "/100")
 end
 hungerBar.Changed:Connect(onHungerChanged)
-onThirstChanged(hungerBar.Value)
+onHungerChanged(hungerBar.Value)
 --Energy
 local energyValue = ViewTab:AddLabel("Player's energy: nil")
 local energyBar = player.Hunger
@@ -385,7 +385,7 @@ local function onEnergyChanged(newValue)
     energyValue:Set("Player's Energy:" .. newValue .. "/100")
 end
 energyBar.Changed:Connect(onEnergyChanged)
-onThirstChanged(energyBar.Value)
+onEnergyChanged(energyBar.Value)
 
 -- ═════════════════════════════════════════════════════════════════════════════
 --  TAB: Misc
