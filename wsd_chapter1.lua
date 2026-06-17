@@ -2,10 +2,11 @@
 local OrionLib = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"
 ))()
-print('8:22PM')
+print('8:53PM')
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
 local Players    = game:GetService("Players")
+local VisibilityCheckDispatcher = game:GetService("VisibilityCheckDispatcher")
 local player     = Players.LocalPlayer
 -- Đợi cho tới khi character xuất hiện VÀ có đầy đủ HumanoidRootPart bên trong
 local char = player.Character
@@ -31,7 +32,6 @@ local function tpLookAt(pos, lookTarget)
     local dir = (pos - lookTarget)
     local offset = (dir.Magnitude > 0 and dir.Unit or Vector3.zAxis) * 2
     local targetCFrame = CFrame.lookAt(lookTarget + offset, lookTarget)
-
     hrp.CFrame    = targetCFrame  -- Đặt vị trí + hướng nhân vật
     camera.CFrame = targetCFrame  -- Đặt camera nhìn cùng hướng
 end
@@ -41,6 +41,14 @@ end
 local function firePrompt(prompt)
     prompt.HoldDuration = 0
     fireproximityprompt(prompt)
+end
+-- Helper: Camera handler
+local function firstPersonCamera()
+    player.CameraMode = Enum.CameraMode.LockFirstPerson
+end
+
+local function thirdPersonCamera()
+    player.CameraMode = Enum.CameraMode.Classic
 end
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -106,6 +114,7 @@ end
 
 local function getAndEatCookedNoodles()
     local originalCFrame = hrp.CFrame
+    firstPersonCamera()
     -- [Bước 1] Lấy mì sống từ tủ lạnh ──────────────────────────────────────
     tpLookAt(hrp.Position, fridge.Position)   -- TP đến fridge, nhìn vào fridge
     task.wait(0.3)
@@ -129,6 +138,7 @@ local function getAndEatCookedNoodles()
     -- [Bước 4] Về vị trí cũ
     task.wait(0.3)
     hrp.CFrame = originalCFrame
+    thirdPersonCamera()
 end
 
 MainTab:AddButton({
@@ -150,6 +160,7 @@ end
 
 local function getWater()
     local originalCFrame = hrp.CFrame
+    firstPersonCamera()
     -- [Bước 1] Lấy cốc ──────────────────────────────────────
     local glass = getDrinkingGlass()
     tpLookAt(hrp.Position, glass.Position)
@@ -164,6 +175,7 @@ local function getWater()
     -- [Bước 3] Về vị trí cũ
     task.wait(0.3)
     hrp.CFrame = originalCFrame
+    thirdPersonCamera()
 end
 
 MainTab:AddButton({
@@ -182,7 +194,7 @@ local gasCans = workspace.House.GasCans:GetChildren()
 local generator = workspace.House.Generator.Button
 local function refillGenerator()
     local oldCFrame = hrp.CFrame
-
+    firstPersonCamera()
     -- [1] Lấy gas can đầu tiên (chỉ cần 1)
     local can     = gasCans[1]
     local primary = can.Primary
@@ -201,6 +213,7 @@ local function refillGenerator()
 
     -- [4] Về vị trí ban đầu
     hrp.CFrame = oldCFrame
+    thirdPersonCamera()
 end
 
 MainTab:AddButton({
@@ -237,12 +250,8 @@ local ViewTab = Window:MakeTab({
 -- ═════════════════════════════════════════════════════════════════════════════
 -- SECTION: ESP
 -- ═════════════════════════════════════════════════════════════════════════════
-ViewTab:AddDivider({Text = "ESP"})
+ViewTab:AddDivider()
 ViewTab:AddSection({Name="ESP"})
-local state = 0 
--- 0 = chưa có
--- 1 = đang hiển thị đỏ
--- 2 = đang tắt (trong suốt)
 
 local function dadEsp(value)
     -- Nếu tắt toggle thì xóa highlight luôn
@@ -252,7 +261,6 @@ local function dadEsp(value)
             local h = dadModel:FindFirstChild("DadHighlight")
             if h then h:Destroy() end
         end
-        state = 0
         return
     end
 
@@ -263,7 +271,7 @@ local function dadEsp(value)
             Name    = "Error!",
             Content = "Dad wasn't possesed! Please re-enable later.",
             Image   = "rbxassetid://4483345998",
-            Time    = 5,
+            Time    = 3,
         })
         OrionLib.Flags["dadESP"]:Set(false) -- tự tắt toggle
         return
@@ -278,7 +286,6 @@ local function dadEsp(value)
         highlight.FillTransparency    = 0.5
         highlight.OutlineTransparency = 1
         highlight.Parent              = dadModel
-        state = 1
     end
 end
 
@@ -293,6 +300,42 @@ ViewTab:AddToggle({
     Callback = function(value)
         dadEsp(value)
     end,
+})
+-- ═════════════════════════════════════════════════════════════════════════════
+-- SECTION: CAMERA
+-- ═════════════════════════════════════════════════════════════════════════════
+local function fixCam()
+    thirdPersonCamera()
+    OrionLib:MakeNotification({
+        Name    = "Information!",
+        Content = "Third Person camera might break main scripts(get noodles, water, refill generator)",
+        Image   = "rbxassetid://4483345998",
+        Time    = 3,
+    })
+end
+local function force1stCam()
+    firstPersonCamera()
+    OrionLib:MakeNotification({
+        Name    = "Information!",
+        Content = "First Person camera might make it harder to see.",
+        Image   = "rbxassetid://4483345998",
+        Time    = 3,
+    })
+end
+ViewTab:AddDivider()
+ViewTab:AddSection({Name="Camera"})
+ViewTab:AddButton({
+    Name = "Unlock 3rd Person camera",
+    Visible = true,
+    Disabled = false,
+    Callback = fixCam,
+})
+
+ViewTab:AddButton({
+    Name = "1st Person Camera",
+    Visible = true,
+    Disabled = false,
+    Callback = force1stCam
 })
 -- ═════════════════════════════════════════════════════════════════════════════
 --  TAB: Misc
