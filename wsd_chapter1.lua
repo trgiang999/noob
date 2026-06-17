@@ -45,10 +45,12 @@ end
 -- 4. Khôi phục về giá trị gốc
 local function firePrompt(prompt)
     local originalDist      = prompt.MaxActivationDistance
+    local originalDuration  = prompt.HoldDuration
     prompt.MaxActivationDistance = math.huge
     prompt.HoldDuration     = 0
     fireproximityprompt(prompt)
     prompt.MaxActivationDistance = originalDist
+    prompt.HoldDuration = originalDuration
 end
 -- Helper: Camera handler
 local function firstPersonCamera()
@@ -312,6 +314,8 @@ ViewTab:AddToggle({
 -- ═════════════════════════════════════════════════════════════════════════════
 -- SECTION: CAMERA
 -- ═════════════════════════════════════════════════════════════════════════════
+ViewTab:AddDivider()
+ViewTab:AddSection({Name="Camera"})
 local function fixCam()
     thirdPersonCamera()
     OrionLib:MakeNotification({
@@ -330,8 +334,7 @@ local function force1stCam()
         Time    = 3,
     })
 end
-ViewTab:AddDivider()
-ViewTab:AddSection({Name="Camera"})
+
 ViewTab:AddButton({
     Name = "Unlock 3rd Person camera",
     Visible = true,
@@ -345,6 +348,65 @@ ViewTab:AddButton({
     Disabled = false,
     Callback = force1stCam
 })
+-- ═════════════════════════════════════════════════════════════════════════════
+-- SECTION: STATISTICS VALUE
+-- ═════════════════════════════════════════════════════════════════════════════
+ViewTab:AddDivider()
+ViewTab:AddSection({Name="Statistics"})
+--Generator-----------
+local fuelValue = ViewTab:AddLabel("Generator's fuel: nil") --generator bar's value
+local generatorBar = workspace.House.Generator.Bar
+
+local function onFuelChanged(newValue)
+    local state = 'success'
+
+    if newValue < 30 then
+        state = 'warning'
+    end
+    fuelValue:Set("Generator's fuel:".. newValue .."/100", state)
+end
+generatorBar.Changed:Connect(onFuelChanged)
+onFuelChanged(generatorBar.Value)
+--Thirst
+local thirstValue = ViewTab:AddLabel("Player's thirst: nil")
+local thirstBar = player.Thirst
+local function onThirstChanged(newValue)
+    local state = 'success'
+
+    if newValue < 30 then
+        state = 'warning'
+    end
+    thirstValue:Set("Player's thirst:" .. newValue .. "/100", state)
+end
+thirstBar.Changed:Connect(onThirstChanged)
+onThirstChanged(thirstBar.Value)
+--Hunger
+local hungerValue = ViewTab:AddLabel("Player's hunger: nil")
+local hungerBar = player.Hunger
+local function onHungerChanged(newValue)
+    local state = 'success'
+
+    if newValue < 30 then
+        state = 'warning'
+    end
+    hungerValue:Set("Player's hunger:" .. newValue .. "/100", state)
+end
+hungerBar.Changed:Connect(onThirstChanged)
+onThirstChanged(hungerBar.Value)
+--Energy
+local energyValue = ViewTab:AddLabel("Player's energy: nil")
+local energyBar = player.Hunger
+local function onHungerChanged(newValue)
+    local state = 'success'
+
+    if newValue < 30 then
+        state = 'warning'
+    end
+    energyValue:Set("Player's Energy:" .. newValue .. "/100", state)
+end
+energyBar.Changed:Connect(onThirstChanged)
+onThirstChanged(energyBar.Value)
+
 -- ═════════════════════════════════════════════════════════════════════════════
 --  TAB: Misc
 -- ═════════════════════════════════════════════════════════════════════════════
