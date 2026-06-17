@@ -2,17 +2,13 @@
 local OrionLib = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"
 ))()
-print('8:22PM')
+print('5:57PM')
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
 local Players    = game:GetService("Players")
 local player     = Players.LocalPlayer
--- Đợi cho tới khi character xuất hiện VÀ có đầy đủ HumanoidRootPart bên trong
-local char = player.Character
-if not char or not char:FindFirstChild("HumanoidRootPart") then
-    char = player.CharacterAdded:Wait()
-end
-local hrp = char:WaitForChild("HumanoidRootPart", 10) -- Giới hạn đợi tối đa 10 giây tránh treo script
+local char       = player.Character or player.CharacterAdded:Wait()
+local hrp        = char:WaitForChild("HumanoidRootPart")
 local camera     = workspace.CurrentCamera
 
 -- ── Helper: Equip tool từ Backpack theo tên ───────────────────────────────────
@@ -223,74 +219,6 @@ MainTab:AddButton({
     Visible = true,
     Disabled = false,
     Callback = tpToBed,
-})
--- ═════════════════════════════════════════════════════════════════════════════
---  TAB: VIEWING
--- ═════════════════════════════════════════════════════════════════════════════
-local ViewTab = Window:MakeTab({
-    Name     = "Viewing",
-    Icon     = "rbxassetid://4483345998",
-    Visible  = true,
-    Disabled = false,
-})
-
--- ═════════════════════════════════════════════════════════════════════════════
--- SECTION: ESP
--- ═════════════════════════════════════════════════════════════════════════════
-ViewTab:AddDivider({Text = "ESP"})
-ViewTab:AddSection({Name="ESP"})
-local state = 0 
--- 0 = chưa có
--- 1 = đang hiển thị đỏ
--- 2 = đang tắt (trong suốt)
-
-local function dadEsp()
-    if not pcall(function()
-        workspace.Game.dad.PossesedDad
-    end) then
-        OrionLib:MakeNotification({
-            Name    = "Error!",                          -- Tiêu đề thông báo
-            Content = "Dad wasn't possesed! Please re-enable later.",            -- Nội dung thông báo
-            Image   = "rbxassetid://4483345998",        -- Icon bên trái tiêu đề
-            Time    = 5,                                -- Thời gian hiển thị (giây)
-        })
-        return
-    end
-    local dad = workspace.Game.dad.PossesedDad
-    local highlight = dad:FindFirstChild("DadHighlight")
-
-    if not highlight then
-		-- Bật lần 1: tạo highlight đỏ
-		highlight = Instance.new("Highlight")
-		highlight.Name = "DadHighlight"
-		highlight.FillColor = Color3.fromRGB(255, 80, 80) -- đỏ nhạt
-		highlight.FillTransparency = 0.5
-		highlight.OutlineTransparency = 1
-		highlight.Parent = dad
-		
-		state = 1
-	else
-		if state == 1 then
-			-- Tắt: làm trong suốt
-			highlight.FillTransparency = 1
-			state = 2
-		elseif state == 2 then
-			-- Bật lại: đỏ nhạt
-			highlight.FillTransparency = 0.5
-			state = 1
-		end
-	end
-end
-
-ViewTab:AddToggle({
-    Name     = "Dad ESP",
-    Default  = false,          -- Giá trị mặc định
-    Type     = "CheckBox",     -- "Switch" hoặc "CheckBox"
-    Flag     = "dadESP",    -- ID dùng với OrionLib.Flags
-    Save     = true,           -- Lưu vào config
-    Visible  = true,
-    Disabled = false,
-    Callback = dadEsp,
 })
 -- ═════════════════════════════════════════════════════════════════════════════
 --  TAB: Misc
