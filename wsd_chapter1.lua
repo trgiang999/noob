@@ -60,7 +60,7 @@ local MainTab = Window:MakeTab({
     Disabled = false,
 })
 
-local Main_OP_Section = MainTab:AddSection({ Name = "OP" })
+local Main_Section = MainTab:AddSection({ Name = "Main" })
 
 -- ┌─ Instant ProximityPrompt ───────────────────────────────────────────────┐
 -- │  Hook vào PromptButtonHoldBegan: mỗi khi người chơi giữ bất kỳ prompt  │
@@ -143,7 +143,7 @@ local function getDrinkingGlass()
     return workspace.House.Spares:GetChildren()[6].Primary
 end
 
-local function getWaterGlass()
+local function drinkWater()
     local originalCFrame = hrp.CFrame
     -- [Bước 1] Lấy cốc ──────────────────────────────────────
     local glass = getDrinkingGlass()
@@ -151,21 +151,66 @@ local function getWaterGlass()
     firePrompt(glass.ProximityPrompt)
     task.wait(0.3)
     equipTool("Drinking Glass")
-    -- [Bước 2] Rót nước ──────────────────────────────────────────────
+    -- [Bước 2] Rót nước & uống nước ──────────────────────────────────────────────
     tpLookAt(hrp.Position, water_Dispenser.Position)
     firePrompt(water_Dispenser.ProximityPrompt)
     task.wait(0.3)
     equipTool("Glass of Water")
+    mouse1click()
     -- [Bước 3] Về vị trí cũ
     task.wait(0.3)
     hrp.CFrame = originalCFrame
 end
 
 MainTab:AddButton({
-    Name     = "Get Glass of Water",
+    Name     = "Drink Water",
     Visible  = true,
     Disabled = false,
-    Callback = getWaterGlass,
+    Callback = drinkWater,
+})
+-- ┌─ Refill Generator   ────────────────────────────────────────────────────┐
+-- │  Quy trình tự động đổ xăng:                                             │
+-- │    1. TP → GasCan  → fireprox → đợi → equip "gas can"                   │
+-- │    2. TP → Generator -> fireprox -> Tp old pos                          |
+-- │                                                                         │
+-- └─────────────────────────────────────────────────────────────────────────┘
+local gasCans = workspace.House.GasCans:GetChildren()
+local generator = workspace.House.Generator.Button
+local function refillGenerator()
+    local oldCFrame = hrp.CFrame
+
+    -- [Bước 1] Lần lượt lấy từng gas can trong workspace.House.GasCans
+    for _, can in ipairs(gasCans) do
+        local primary = can:FindFirstChild("Primary")
+        if not primary then continue end
+
+        local prompt = primary:FindFirstChildOfClass("ProximityPrompt")
+        if not prompt then continue end
+
+        -- TP đến cạnh gas can, nhìn vào nó, rồi fire prompt
+        tpLookAt(hrp.Position, primary.Position)
+        firePrompt(prompt)
+        task.wait(0.5)
+    end
+
+    -- [Bước 2] Equip Gas Can vừa lấy từ Backpack
+    equipTool("gas can")
+    task.wait(0.3)
+
+    -- [Bước 3] TP đến generator và đổ xăng
+    tpLookAt(hrp.Position, generator.Position)
+    firePrompt(generator:FindFirstChildOfClass("ProximityPrompt"))
+    task.wait(0.5)
+
+    -- [Bước 4] Trở về vị trí ban đầu
+    hrp.CFrame = oldCFrame
+end
+
+MainTab:AddButton({
+    Name     = "Refill Generator",
+    Visible  = true,
+    Disabled = false,
+    Callback = refillGenerator,
 })
 -- ═════════════════════════════════════════════════════════════════════════════
 --  TAB: Misc
