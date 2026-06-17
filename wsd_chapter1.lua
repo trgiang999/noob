@@ -2,7 +2,7 @@
 local OrionLib = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"
 ))()
-print('2:20PM')
+print('5:15PM')
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Players    = game:GetService("Players")
 local player     = Players.LocalPlayer
@@ -179,30 +179,23 @@ local generator = workspace.House.Generator.Button
 local function refillGenerator()
     local oldCFrame = hrp.CFrame
 
-    -- [Bước 1] Lần lượt lấy từng gas can trong workspace.House.GasCans
-    for _, can in ipairs(gasCans) do
-        local primary = can:FindFirstChild("Primary")
-        if not primary then continue end
+    -- [1] Lấy gas can đầu tiên (chỉ cần 1)
+    local can     = gasCans[1]
+    local primary = can.Primary
+    tpLookAt(hrp.Position, primary.Position)
+    firePrompt(primary:FindFirstChildOfClass("ProximityPrompt"))
+    task.wait(0.5)
 
-        local prompt = primary:FindFirstChildOfClass("ProximityPrompt")
-        if not prompt then continue end
-
-        -- TP đến cạnh gas can, nhìn vào nó, rồi fire prompt
-        tpLookAt(hrp.Position, primary.Position)
-        firePrompt(prompt)
-        task.wait(0.5)
-    end
-
-    -- [Bước 2] Equip Gas Can vừa lấy từ Backpack
+    -- [2] Equip gas can vừa lấy
     equipTool("gas can")
     task.wait(0.3)
 
-    -- [Bước 3] TP đến generator và đổ xăng
+    -- [3] TP đến generator và đổ xăng
     tpLookAt(hrp.Position, generator.Position)
     firePrompt(generator:FindFirstChildOfClass("ProximityPrompt"))
     task.wait(0.5)
 
-    -- [Bước 4] Trở về vị trí ban đầu
+    -- [4] Về vị trí ban đầu
     hrp.CFrame = oldCFrame
 end
 
