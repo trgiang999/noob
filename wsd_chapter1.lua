@@ -6,14 +6,9 @@ print('8:58PM')
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
 local Players    = game:GetService("Players")
-local VisibilityCheckDispatcher = game:GetService("VisibilityCheckDispatcher")
 local player     = Players.LocalPlayer
--- Đợi cho tới khi character xuất hiện VÀ có đầy đủ HumanoidRootPart bên trong
-local char = player.Character
-if not char or not char:FindFirstChild("HumanoidRootPart") then
-    char = player.CharacterAdded:Wait()
-end
-local hrp = char:WaitForChild("HumanoidRootPart", 10) -- Giới hạn đợi tối đa 10 giây tránh treo script
+local char       = player.Character or player.CharacterAdded:Wait()
+local hrp        = char:WaitForChild("HumanoidRootPart")
 local camera     = workspace.CurrentCamera
 
 -- ── Helper: Equip tool từ Backpack theo tên ───────────────────────────────────
@@ -48,6 +43,7 @@ local function firePrompt(prompt)
     local originalDuration  = prompt.HoldDuration
     prompt.MaxActivationDistance = math.huge
     prompt.HoldDuration     = 0
+    task.wait(0.3)
     fireproximityprompt(prompt)
     prompt.MaxActivationDistance = originalDist
     prompt.HoldDuration = originalDuration
@@ -209,8 +205,8 @@ local function refillGenerator()
     local can     = gasCans[1]
     local primary = can.Primary
     tpLookAt(hrp.Position, primary.Position)
-    firePrompt(primary:FindFirstChildOfClass("ProximityPrompt"))
     task.wait(0.5)
+    firePrompt(primary:FindFirstChildOfClass("ProximityPrompt"))
 
     -- [2] Equip gas can vừa lấy
     equipTool("gas can")
@@ -378,7 +374,7 @@ local function onHungerChanged(newValue)
 end
 hungerBar.Changed:Connect(onHungerChanged)
 onHungerChanged(hungerBar.Value)
---Energy
+--Energy    
 local energyValue = ViewTab:AddLabel("Player's energy: nil")
 local energyBar = player.Hunger
 local function onEnergyChanged(newValue)
