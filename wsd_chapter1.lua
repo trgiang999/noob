@@ -41,8 +41,7 @@ local function firePrompt(prompt)
     local originalDuration  = prompt.HoldDuration
     prompt.MaxActivationDistance = math.huge
     prompt.HoldDuration     = 0
-    task.wait(0.3)
-    fireproximityprompt(prompt)
+    task.wait(0.2)
     prompt.MaxActivationDistance = originalDist
     prompt.HoldDuration = originalDuration
 end
