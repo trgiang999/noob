@@ -2,7 +2,7 @@
 local OrionLib = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"
 ))()
-print('8:53PM')
+print('8:22PM')
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
 local Players    = game:GetService("Players")
@@ -38,9 +38,17 @@ end
 
 
 -- ── Helper: Kích hoạt ProximityPrompt tức thì (bỏ qua HoldDuration) ──────────
+-- Kích hoạt ProximityPrompt tức thì:
+-- 1. Lưu MaxActivationDistance gốc
+-- 2. Đặt thành math.huge để đảm bảo kích hoạt được dù đứng xa
+-- 3. Fire prompt
+-- 4. Khôi phục về giá trị gốc
 local function firePrompt(prompt)
-    prompt.HoldDuration = 0
+    local originalDist      = prompt.MaxActivationDistance
+    prompt.MaxActivationDistance = math.huge
+    prompt.HoldDuration     = 0
     fireproximityprompt(prompt)
+    prompt.MaxActivationDistance = originalDist
 end
 -- Helper: Camera handler
 local function firstPersonCamera()
