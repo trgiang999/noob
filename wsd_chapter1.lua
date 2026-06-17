@@ -60,7 +60,7 @@ local MainTab = Window:MakeTab({
     Disabled = false,
 })
 
-local Main_Section = MainTab:AddSection({ Name = "Main" })
+local mainMainSection = MainTab:AddSection({ Name = "Main" })
 
 -- ┌─ Instant ProximityPrompt ───────────────────────────────────────────────┐
 -- │  Hook vào PromptButtonHoldBegan: mỗi khi người chơi giữ bất kỳ prompt  │
@@ -74,7 +74,7 @@ local function instantProximityPrompt()
     )
 end
 
-MainTab:AddButton({
+mainMainSection:AddButton({
     Name     = "Instant ProximityPrompt",
     Visible  = true,
     Disabled = false,
@@ -126,7 +126,7 @@ local function getAndEatCookedNoodles()
     hrp.CFrame = originalCFrame
 end
 
-MainTab:AddButton({
+mainMainSection:AddButton({
     Name     = "Eat Cooked Noodle",
     Visible  = true,
     Disabled = false,
@@ -162,7 +162,7 @@ local function drinkWater()
     hrp.CFrame = originalCFrame
 end
 
-MainTab:AddButton({
+mainMainSection:AddButton({
     Name     = "Drink Water",
     Visible  = true,
     Disabled = false,
@@ -199,11 +199,26 @@ local function refillGenerator()
     hrp.CFrame = oldCFrame
 end
 
-MainTab:AddButton({
+mainMainSection:AddButton({
     Name     = "Refill Generator",
     Visible  = true,
     Disabled = false,
     Callback = refillGenerator,
+})
+MainTab:AddDivider()
+-- ═════════════════════════════════════════════════════════════════════════════
+-- SECTION: TELEPORT
+-- ═════════════════════════════════════════════════════════════════════════════
+local function tpToBed()
+    local bed = workspace.House.Rooms.Bedroom.Beds.Bed.Primary
+    tpLookAt(hrp.Position, bed.Position)
+end
+local mainTPSection = MainTab:AddSection({name="Teleport"})
+mainTPSection.AddButton({
+    Name = "Teleport to Bed",
+    Visible = true,
+    Disabled = false,
+    Callback = tpToBed
 })
 -- ═════════════════════════════════════════════════════════════════════════════
 --  TAB: Misc
@@ -224,4 +239,12 @@ MiscTab:AddButton({
         OrionLib:Destroy()  -- Dùng OrionLib:Destroy() thay vì Window:Destroy()
                             -- để ngắt sạch tất cả connection
     end,
+})
+MiscTab:AddButton({
+    Name = "Infinite Yield",
+    Visible = true,
+    Disabled = false,
+    Callback = function()
+        loadstring(game:HttpGet(('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'),true))()
+    end
 })
