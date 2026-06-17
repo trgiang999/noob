@@ -211,7 +211,7 @@ MainTab:AddDivider()
 local function tpToBed()
     hrp.CFrame = CFrame.new(Vector3.new(-126, 19, 42))
 end
-MainTab:AddSection({name="Teleport"})
+MainTab:AddSection({Name="Teleport"})
 MainTab:AddButton({
     Name = "Teleport to Bed",
     Visible = true,
