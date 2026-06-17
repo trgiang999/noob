@@ -2,7 +2,7 @@
 local OrionLib = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"
 ))()
-print('6:09PM')
+print('6:13PM')
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
 local Players    = game:GetService("Players")
@@ -273,9 +273,7 @@ ViewTab:AddToggle({
     Save     = true,           -- Lưu vào config
     Visible  = true,
     Disabled = false,
-    Callback = function(value)
-        print("Toggle is now:", value)
-    end,
+    Callback = dadEsp,
 })
 -- ═════════════════════════════════════════════════════════════════════════════
 --  TAB: Misc
