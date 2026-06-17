@@ -358,12 +358,7 @@ local fuelValue = ViewTab:AddLabel("Generator's fuel: nil") --generator bar's va
 local generatorBar = workspace.House.Generator.Bar
 
 local function onFuelChanged(newValue)
-    local state = 'success'
-
-    if newValue < 30 then
-        state = 'warning'
-    end
-    fuelValue:Set("Generator's fuel:".. newValue .."/100", state)
+    fuelValue:Set("Generator's fuel:".. newValue .."/100")
 end
 generatorBar.Changed:Connect(onFuelChanged)
 onFuelChanged(generatorBar.Value)
@@ -371,12 +366,7 @@ onFuelChanged(generatorBar.Value)
 local thirstValue = ViewTab:AddLabel("Player's thirst: nil")
 local thirstBar = player.Thirst
 local function onThirstChanged(newValue)
-    local state = 'success'
-
-    if newValue < 30 then
-        state = 'warning'
-    end
-    thirstValue:Set("Player's thirst:" .. newValue .. "/100", state)
+    thirstValue:Set("Player's thirst:" .. newValue .. "/100")
 end
 thirstBar.Changed:Connect(onThirstChanged)
 onThirstChanged(thirstBar.Value)
@@ -384,27 +374,17 @@ onThirstChanged(thirstBar.Value)
 local hungerValue = ViewTab:AddLabel("Player's hunger: nil")
 local hungerBar = player.Hunger
 local function onHungerChanged(newValue)
-    local state = 'success'
-
-    if newValue < 30 then
-        state = 'warning'
-    end
-    hungerValue:Set("Player's hunger:" .. newValue .. "/100", state)
+    hungerValue:Set("Player's hunger:" .. newValue .. "/100")
 end
-hungerBar.Changed:Connect(onThirstChanged)
+hungerBar.Changed:Connect(onHungerChanged)
 onThirstChanged(hungerBar.Value)
 --Energy
 local energyValue = ViewTab:AddLabel("Player's energy: nil")
 local energyBar = player.Hunger
-local function onHungerChanged(newValue)
-    local state = 'success'
-
-    if newValue < 30 then
-        state = 'warning'
-    end
-    energyValue:Set("Player's Energy:" .. newValue .. "/100", state)
+local function onEnergyChanged(newValue)
+    energyValue:Set("Player's Energy:" .. newValue .. "/100")
 end
-energyBar.Changed:Connect(onThirstChanged)
+energyBar.Changed:Connect(onEnergyChanged)
 onThirstChanged(energyBar.Value)
 
 -- ═════════════════════════════════════════════════════════════════════════════
