@@ -60,7 +60,7 @@ local MainTab = Window:MakeTab({
     Disabled = false,
 })
 
-local mainMainSection = MainTab:AddSection({ Name = "Main" })
+MainTab:AddSection({ Name = "Main" })
 
 -- ┌─ Instant ProximityPrompt ───────────────────────────────────────────────┐
 -- │  Hook vào PromptButtonHoldBegan: mỗi khi người chơi giữ bất kỳ prompt  │
@@ -74,7 +74,7 @@ local function instantProximityPrompt()
     )
 end
 
-mainMainSection:AddButton({
+MainTab:AddButton({
     Name     = "Instant ProximityPrompt",
     Visible  = true,
     Disabled = false,
@@ -126,7 +126,7 @@ local function getAndEatCookedNoodles()
     hrp.CFrame = originalCFrame
 end
 
-mainMainSection:AddButton({
+MainTab:AddButton({
     Name     = "Eat Cooked Noodle",
     Visible  = true,
     Disabled = false,
@@ -162,7 +162,7 @@ local function drinkWater()
     hrp.CFrame = originalCFrame
 end
 
-mainMainSection:AddButton({
+MainTab:AddButton({
     Name     = "Drink Water",
     Visible  = true,
     Disabled = false,
@@ -199,7 +199,7 @@ local function refillGenerator()
     hrp.CFrame = oldCFrame
 end
 
-mainMainSection:AddButton({
+MainTab:AddButton({
     Name     = "Refill Generator",
     Visible  = true,
     Disabled = false,
@@ -213,8 +213,8 @@ local function tpToBed()
     local bed = workspace.House.Rooms.Bedroom.Beds.Bed.Primary
     tpLookAt(hrp.Position, bed.Position)
 end
-local mainTPSection = MainTab:AddSection({name="Teleport"})
-mainTPSection.AddButton({
+MainTab:AddSection({name="Teleport"})
+MainTab.AddButton({
     Name = "Teleport to Bed",
     Visible = true,
     Disabled = false,
