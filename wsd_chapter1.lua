@@ -1,7 +1,5 @@
 -- ── Khởi động thư viện Orion ──────────────────────────────────────────────────
-local OrionLib = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"
-))()
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"))()
 print('9:58PM')
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
@@ -203,7 +201,7 @@ local function refillGenerator()
     firstPersonCamera()
     -- [1] Lấy gas can đầu tiên (chỉ cần 1)
     local can     = gasCans[1]
-    local primary = can.Primary
+    local primary = can:FindFirstChild("Primary")
     tpLookAt(hrp.Position, primary.Position)
     task.wait(0.5)
     firePrompt(primary:FindFirstChildOfClass("ProximityPrompt"))
