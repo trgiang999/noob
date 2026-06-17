@@ -23,11 +23,12 @@ end
 -- ── Helper: Teleport + nhìn vào một object ───────────────────────────────────
 -- Phiên bản chính xác hơn: tp đến pos, sau đó nhìn thẳng vào target
 local function tpLookAt(pos, lookTarget)
-    -- Đứng cách lookTarget 2 studs theo hướng pos→lookTarget
-    -- Nếu pos == lookTarget thì fallback về Vector3.zAxis để tránh nan
     local dir = (pos - lookTarget)
     local offset = (dir.Magnitude > 0 and dir.Unit or Vector3.zAxis) * 2
-    hrp.CFrame = CFrame.lookAt(lookTarget + offset, lookTarget)
+    local targetCFrame = CFrame.lookAt(lookTarget + offset, lookTarget)
+
+    hrp.CFrame    = targetCFrame  -- Đặt vị trí + hướng nhân vật
+    camera.CFrame = targetCFrame  -- Đặt camera nhìn cùng hướng
 end
 
 
