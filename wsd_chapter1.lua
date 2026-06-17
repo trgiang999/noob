@@ -143,7 +143,7 @@ local function getDrinkingGlass()
     return workspace.House.Spares:GetChildren()[6].Primary
 end
 
-local function drinkWater()
+local function getWater()
     local originalCFrame = hrp.CFrame
     -- [Bước 1] Lấy cốc ──────────────────────────────────────
     local glass = getDrinkingGlass()
@@ -156,17 +156,16 @@ local function drinkWater()
     firePrompt(water_Dispenser.ProximityPrompt)
     task.wait(0.3)
     equipTool("Glass of Water")
-    mouse1click()
     -- [Bước 3] Về vị trí cũ
     task.wait(0.3)
     hrp.CFrame = originalCFrame
 end
 
 MainTab:AddButton({
-    Name     = "Drink Water",
+    Name     = "Get Water",
     Visible  = true,
     Disabled = false,
-    Callback = drinkWater,
+    Callback = getWater,
 })
 -- ┌─ Refill Generator   ────────────────────────────────────────────────────┐
 -- │  Quy trình tự động đổ xăng:                                             │
@@ -210,15 +209,14 @@ MainTab:AddDivider()
 -- SECTION: TELEPORT
 -- ═════════════════════════════════════════════════════════════════════════════
 local function tpToBed()
-    local bed = workspace.House.Rooms.Bedroom.Beds.Bed.Primary
-    tpLookAt(hrp.Position, bed.Position)
+    hrp.CFrame = CFrame.new(Vector3.new(-126, 19, 42))
 end
 MainTab:AddSection({name="Teleport"})
 MainTab.AddButton({
     Name = "Teleport to Bed",
     Visible = true,
     Disabled = false,
-    Callback = tpToBed
+    Callback = tpToBed,
 })
 -- ═════════════════════════════════════════════════════════════════════════════
 --  TAB: Misc
@@ -230,6 +228,16 @@ local MiscTab = Window:MakeTab({
     Disabled = false,
 })
 
+
+MiscTab:AddButton({
+    Name = "Infinite Yield",
+    Visible = true,
+    Disabled = false,
+    Callback = function()
+        loadstring(game:HttpGet(('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'),true))()
+    end
+})
+
 -- Nút huỷ toàn bộ UI Orion
 MiscTab:AddButton({
     Name     = "Destroy UI",
@@ -239,12 +247,4 @@ MiscTab:AddButton({
         OrionLib:Destroy()  -- Dùng OrionLib:Destroy() thay vì Window:Destroy()
                             -- để ngắt sạch tất cả connection
     end,
-})
-MiscTab:AddButton({
-    Name = "Infinite Yield",
-    Visible = true,
-    Disabled = false,
-    Callback = function()
-        loadstring(game:HttpGet(('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'),true))()
-    end
 })
