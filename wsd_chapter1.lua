@@ -2,7 +2,7 @@
 local OrionLib = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"
 ))()
-print('8:22PM')
+print('8:58PM')
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
 local Players    = game:GetService("Players")
