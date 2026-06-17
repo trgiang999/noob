@@ -2,8 +2,9 @@
 local OrionLib = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"
 ))()
-print('5:15PM')
+print('6:09PM')
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
+local Lighting = game:GetService("Lighting")
 local Players    = game:GetService("Players")
 local player     = Players.LocalPlayer
 local char       = player.Character or player.CharacterAdded:Wait()
@@ -212,11 +213,69 @@ local function tpToBed()
     hrp.CFrame = CFrame.new(Vector3.new(-126, 19, 42))
 end
 MainTab:AddSection({Name="Teleport"})
+
 MainTab:AddButton({
     Name = "Teleport to Bed",
     Visible = true,
     Disabled = false,
     Callback = tpToBed,
+})
+-- ═════════════════════════════════════════════════════════════════════════════
+--  TAB: VIEWING
+-- ═════════════════════════════════════════════════════════════════════════════
+local ViewTab = Window:MakeTab({
+    Name     = "Viewing",
+    Icon     = "rbxassetid://4483345998",
+    Visible  = true,
+    Disabled = false,
+})
+
+-- ═════════════════════════════════════════════════════════════════════════════
+-- SECTION: ESP
+-- ═════════════════════════════════════════════════════════════════════════════
+ViewTab:AddDivider({Text = "ESP"})
+ViewTab:AddSection({Name="ESP"})
+local dad = workspace.Game.dad.PossesedDad
+local highlight = dad:FindFirstChild("DadHighlight")
+local state = 0 
+-- 0 = chưa có
+-- 1 = đang hiển thị đỏ
+-- 2 = đang tắt (trong suốt)
+
+local function dadEsp()
+    if not highlight then
+		-- Bật lần 1: tạo highlight đỏ
+		highlight = Instance.new("Highlight")
+		highlight.Name = "DadHighlight"
+		highlight.FillColor = Color3.fromRGB(255, 80, 80) -- đỏ nhạt
+		highlight.FillTransparency = 0.5
+		highlight.OutlineTransparency = 1
+		highlight.Parent = dad
+		
+		state = 1
+	else
+		if state == 1 then
+			-- Tắt: làm trong suốt
+			highlight.FillTransparency = 1
+			state = 2
+		elseif state == 2 then
+			-- Bật lại: đỏ nhạt
+			highlight.FillTransparency = 0.5
+			state = 1
+		end
+	end
+end
+ViewTab:AddToggle({
+    Name     = "Dad ESP",
+    Default  = false,          -- Giá trị mặc định
+    Type     = "CheckBox",     -- "Switch" hoặc "CheckBox"
+    Flag     = "dadESP",    -- ID dùng với OrionLib.Flags
+    Save     = true,           -- Lưu vào config
+    Visible  = true,
+    Disabled = false,
+    Callback = function(value)
+        print("Toggle is now:", value)
+    end,
 })
 -- ═════════════════════════════════════════════════════════════════════════════
 --  TAB: Misc
@@ -238,6 +297,31 @@ MiscTab:AddButton({
     end
 })
 
+MiscTab:AddButton({
+    Name = "FullBright",
+    Visible = true,
+    Disabled = false,
+    Callback = function()
+        Lighting.Brightness = 2
+        Lighting.ClockTime = 14
+        Lighting.FogEnd = 100000
+        Lighting.GlobalShadows = false
+        Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+    end
+})
+MiscTab:AddButton({
+    Name = "NoFog",
+    Visible = true,
+    Disabled = false,
+    Callback = function()
+        Lighting.FogEnd = 100000
+        for i,v in pairs(Lighting:GetDescendants()) do
+            if v:IsA("Atmosphere") then
+                v:Destroy()
+            end
+        end
+    end
+})
 -- Nút huỷ toàn bộ UI Orion
 MiscTab:AddButton({
     Name     = "Destroy UI",
