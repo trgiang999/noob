@@ -2,7 +2,7 @@
 local OrionLib = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"
 ))()
-
+print('2:01PM')
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Players    = game:GetService("Players")
 local player     = Players.LocalPlayer
@@ -103,11 +103,10 @@ local function getAndEatCookedNoodles()
     local originalCFrame = hrp.CFrame
     -- [Bước 1] Lấy mì sống từ tủ lạnh ──────────────────────────────────────
     tpLookAt(hrp.Position, fridge.Position)   -- TP đến fridge, nhìn vào fridge
-    task.wait(1)
-    print('--updatedv')
+    task.wait(0.4)
     firePrompt(fridge.ProximityPrompt)            -- Mở tủ lạnh
+    task.wait(0.5)
     equipTool("Raw Noodle")                       -- Cầm mì sống trong Backpack
-    task.wait(0.7)
 
     -- [Bước 2] Nấu mì trên bếp ──────────────────────────────────────────────
     tpLookAt(hrp.Position,stove.Position)      -- TP đến bếp, nhìn vào bếp
