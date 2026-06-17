@@ -2,11 +2,12 @@
 local OrionLib = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"
 ))()
-print('5:57PM')
+print('8:22PM')
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
 local Players    = game:GetService("Players")
 local player     = Players.LocalPlayer
+-- Đợi cho tới khi character xuất hiện VÀ có đầy đủ HumanoidRootPart bên trong
 local char = player.Character
 if not char or not char:FindFirstChild("HumanoidRootPart") then
     char = player.CharacterAdded:Wait()
