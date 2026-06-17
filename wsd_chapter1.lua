@@ -2,7 +2,7 @@
 local OrionLib = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"
 ))()
-print('6:13PM')
+print('6:34PM')
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
 local Players    = game:GetService("Players")
@@ -235,7 +235,6 @@ local ViewTab = Window:MakeTab({
 -- ═════════════════════════════════════════════════════════════════════════════
 ViewTab:AddDivider({Text = "ESP"})
 ViewTab:AddSection({Name="ESP"})
-local dad = workspace.Game.dad.PossesedDad
 local highlight = dad:FindFirstChild("DadHighlight")
 local state = 0 
 -- 0 = chưa có
@@ -243,6 +242,18 @@ local state = 0
 -- 2 = đang tắt (trong suốt)
 
 local function dadEsp()
+    if not pcall(function()
+        dad = workspace.Game.dad.PossesedDad
+    end) then
+        OrionLib:MakeNotification({
+            Name    = "Error!",                          -- Tiêu đề thông báo
+            Content = "Dad wasn't possesed! Please re-enable later.",            -- Nội dung thông báo
+            Image   = "rbxassetid://4483345998",        -- Icon bên trái tiêu đề
+            Time    = 5,                                -- Thời gian hiển thị (giây)
+        })
+        return
+    end
+    local dad = workspace.Game.dad.PossesedDad
     if not highlight then
 		-- Bật lần 1: tạo highlight đỏ
 		highlight = Instance.new("Highlight")
@@ -265,6 +276,7 @@ local function dadEsp()
 		end
 	end
 end
+
 ViewTab:AddToggle({
     Name     = "Dad ESP",
     Default  = false,          -- Giá trị mặc định
