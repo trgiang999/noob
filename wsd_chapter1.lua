@@ -253,8 +253,8 @@ end
 
 local function toggleAntiSit(value)
     OrionLib:MakeNotification({
-        Name    = "Caution!",
-        Content = "Use after cooking noodles.",
+        Name    = "Notification!",
+        Content = "Use after preparing noodles part.",
         Image   = "rbxassetid://4483345998",
         Time    = 3,
     })
@@ -283,7 +283,7 @@ local function toggleAntiSit(value)
 end
 
 MainTab:AddToggle({
-    Name     = "Anti Sit",
+    Name     = "Anti Sit(Anti Stun)",
     Default  = false,
     Type     = "CheckBox",
     Flag     = "antiSit",
