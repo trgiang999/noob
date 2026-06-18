@@ -346,7 +346,7 @@ local function createStatLabel(text: string, valueObject: IntValue): any
     local function update(value: number)
         local num = tostring(value)
         -- Chỉ cập nhật phần Content, Title giữ nguyên
-        para:Set(num .. "/ 100")
+        para:Set(num .. "/100")
     end
 
     valueObject.Changed:Connect(update)
@@ -515,5 +515,21 @@ MiscTab:AddButton({
     Callback = function()
         OrionLib:Destroy()  -- Dùng OrionLib:Destroy() thay vì Window:Destroy()
                             -- để ngắt sạch tất cả connection
+    end,
+})
+
+-- ── DEBUG: Test paragraph + textbox ──────────────────────────────────────────
+MiscTab:AddSection({Name = "Testing stuff"})
+MiscTab:AddDivider({ Text = "Testing" })
+local testPara = MiscTab:AddParagraph("test", "0 / 100")
+
+MiscTab:AddTextbox({
+    Name     = "Set num (1–100)",
+    Default  = "0",
+    Numeric  = true,
+    Finished = true,
+    Callback = function(value)
+        local num = math.clamp(tonumber(value) or 0, 0, 100)
+        testPara:Set(num .. " / 100")
     end,
 })
