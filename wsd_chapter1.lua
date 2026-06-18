@@ -204,18 +204,30 @@ MainTab:AddButton({
 -- │    2. TP → Generator -> fireprox -> Tp old pos                          |
 -- │                                                                         │
 -- └─────────────────────────────────────────────────────────────────────────┘
-local gasCans = workspace.House.GasCans:GetChildren()
 local generator = workspace.House.Generator.Button
 local function refillGenerator()
     local oldCFrame = hrp.CFrame
     firstPersonCamera()
-    -- [1] Lấy gas can đầu tiên (chỉ cần 1)
-    local can     = gasCans[1]
-    local primary = can:FindFirstChild("Primary")
+
+    -- [1] Lấy gas can mỗi lần gọi (vì can cũ có thể đã bị destroy sau lần trước)
+    local can     = workspace.House.GasCans:GetChildren()[1]
+    local primary = can and can:FindFirstChild("Primary")
+
+    -- Guard: không tìm thấy can → báo lỗi, thoát sớm
+    if not primary then
+        thirdPersonCamera()
+        OrionLib:MakeNotification({
+            Name    = "Error!",
+            Content = "Gas can not found!",
+            Time    = 3,
+        })
+        return
+    end
+
     tpLookAt(hrp.Position, primary.Position)
     task.wait(0.5)
     firePrompt(primary:FindFirstChildOfClass("ProximityPrompt"))
-    
+
     -- [2] Equip gas can vừa lấy
     equipTool("gas can")
     task.wait(0.3)
@@ -339,19 +351,19 @@ local statsTab = Window:MakeTab({
 })
 -- Thay hàm createStatLabel thành:
 local function createStatLabel(text: string, valueObject: IntValue): any
-    -- AddParagraph(Title, Content) — Title cố định, Content thay đổi
     local para = statsTab:AddParagraph(text, "...")
 
-    -- Sửa lại: value truyền vào đây là valueObject.Value (kiểu number)
     local function update(value: number)
-        local num = tostring(value)
-        -- Chỉ cập nhật phần Content, Title giữ nguyên
-        para:Set(num .. "/100")
+        -- Dùng task.defer để đợi Roblox render xong rồi mới set
+        -- tránh TextBounds đọc sai → frame phình đột biến
+        task.defer(function()
+            para:Set(tostring(value) .. " / 100")
+        end)
     end
 
     valueObject.Changed:Connect(update)
-    update(valueObject.Value) -- Cập nhật ngay lần đầu
-    
+    update(valueObject.Value)
+
     return para
 end
 
@@ -449,7 +461,7 @@ local function force1stCam()
 end
 
 ViewTab:AddButton({
-    Name = "Unlock 3rd Person camera",
+    Name = "3rd Person camera",
     Visible = true,
     Disabled = false,
     Callback = fixCam,
@@ -515,21 +527,5 @@ MiscTab:AddButton({
     Callback = function()
         OrionLib:Destroy()  -- Dùng OrionLib:Destroy() thay vì Window:Destroy()
                             -- để ngắt sạch tất cả connection
-    end,
-})
-
--- ── DEBUG: Test paragraph + textbox ──────────────────────────────────────────
-MiscTab:AddSection({Name = "Testing stuff"})
-MiscTab:AddDivider({ Text = "Testing" })
-local testPara = MiscTab:AddParagraph("test", "0 / 100")
-
-MiscTab:AddTextbox({
-    Name     = "Set num (1–100)",
-    Default  = "0",
-    Numeric  = true,
-    Finished = true,
-    Callback = function(value)
-        local num = math.clamp(tonumber(value) or 0, 0, 100)
-        testPara:Set(num .. " / 100")
     end,
 })
