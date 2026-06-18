@@ -252,6 +252,12 @@ local function handleSeated(isSeated)
 end
 
 local function toggleAntiSit(value)
+    OrionLib:MakeNotification({
+        Name    = "Caution!",
+        Content = "Use after cooking noodles.",
+        Image   = "rbxassetid://4483345998",
+        Time    = 3,
+    })
     if antiSeatConnection then 
         antiSeatConnection:Disconnect() 
         antiSeatConnection = nil 
