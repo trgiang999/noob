@@ -250,17 +250,19 @@ MainTab:AddButton({
 -- ═════════════════════════════════════════════════════════════════════════════
 MainTab:AddDivider()
 MainTab:AddSection({Name="Statistics"})
+-- Thay hàm createStatLabel thành:
 local function createStatLabel(text, valueObject)
-    local label = MainTab:AddLabel(("%s: nil"):format(text))
+    -- AddParagraph(Title, Content) — Title cố định, Content thay đổi
+    local para = MainTab:AddParagraph(text, "...")
 
     local function update(value)
-        label:Set(("%s: %d/100"):format(text, value))
+        -- Chỉ cập nhật phần Content, Title giữ nguyên
+        para:Set(("%d / 100"):format(value))
     end
 
     valueObject.Changed:Connect(update)
-    update(valueObject.Value)
-
-    return label
+    update(valueObject.Value) -- Cập nhật ngay lần đầu
+    return para
 end
 
 createStatLabel("Fuel", workspace.House.Generator.Bar)
