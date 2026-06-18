@@ -37,13 +37,11 @@ end
 -- 4. Khôi phục về giá trị gốc
 local function firePrompt(prompt)
     local originalDist      = prompt.MaxActivationDistance
-    local originalDuration  = prompt.HoldDuration
     prompt.MaxActivationDistance = math.huge
     prompt.HoldDuration     = 0
     task.wait(0.2)
     fireproximityprompt(prompt)
     prompt.MaxActivationDistance = originalDist
-    prompt.HoldDuration = originalDuration
 end
 -- Helper: Camera handler
 local function firstPersonCamera()
