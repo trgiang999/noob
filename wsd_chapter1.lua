@@ -9,22 +9,29 @@ local hrp        = char:WaitForChild("HumanoidRootPart")
 local camera     = workspace.CurrentCamera
 
 -- ── Helper: Equip tool từ Backpack theo tên ───────────────────────────────────
--- Duyệt Backpack, tìm tool trùng tên rồi dùng Humanoid:EquipTool()
--- Equip tool theo tên, chờ tối đa `timeout` giây để tool xuất hiện trong Backpack
+-- Equip tool theo tên.
+-- Tìm trong Backpack trước, nếu không có thì chờ tối đa `timeout` giây.
+-- Trả về true nếu equip thành công, false nếu không tìm thấy.
 local function equipTool(toolName, timeout)
-    timeout = timeout or 3  -- Mặc định chờ tối đa 3 giây
+    timeout = timeout or 3
+    local humanoid = char:WaitForChild("Humanoid")
+    local backpack  = player:WaitForChild("Backpack")
 
-    local backpack = player:WaitForChild("Backpack")
+    -- Tìm ngay lập tức trước (tool có thể đã ở Backpack rồi)
+    local tool = backpack:FindFirstChild(toolName)
+               or char:FindFirstChild(toolName) -- hoặc đang được equipped trong char
 
-    -- Chờ tool xuất hiện trong Backpack (thay vì FindFirstChild ngay lập tức)
-    local tool = backpack:WaitForChild(toolName, timeout)
+    -- Nếu chưa có → chờ nó xuất hiện trong Backpack
+    if not tool then
+        tool = backpack:WaitForChild(toolName, timeout)
+    end
 
     if not tool then
         warn(("equipTool: '%s' không tìm thấy sau %ds"):format(toolName, timeout))
         return false
     end
 
-    char:WaitForChild("Humanoid"):EquipTool(tool)
+    humanoid:EquipTool(tool)
     return true
 end
 
@@ -234,16 +241,28 @@ MainTab:AddDivider()
 -- ═════════════════════════════════════════════════════════════════════════════
 -- SECTION: TELEPORT
 -- ═════════════════════════════════════════════════════════════════════════════
-local function tpToBed()
-    hrp.CFrame = CFrame.new(Vector3.new(-126, 19, 42))
-end
 MainTab:AddSection({Name="Teleport"})
 
 MainTab:AddButton({
     Name = "Teleport to Bed",
     Visible = true,
     Disabled = false,
-    Callback = tpToBed,
+    Callback = function()
+        hrp.CFrame = CFrame.new(Vector3.new(-126, 19, 42))
+    end,
+})
+
+MainTab:AddButton({
+    Name = "Teleport to Generator",
+    Visible = true,
+    Disabled = false,
+    Callback = function()
+        hrp.CFrame = CFrame.new(Vector3.new(-157, 5, 47))
+    end
+})
+
+MainTab:AddButton({
+    Name = "Teleport to "
 })
 -- ═════════════════════════════════════════════════════════════════════════════
 -- SECTION: STATISTICS VALUE
@@ -283,7 +302,7 @@ local ViewTab = Window:MakeTab({
 -- ═════════════════════════════════════════════════════════════════════════════
 -- SECTION: ESP
 -- ═════════════════════════════════════════════════════════════════════════════
-ViewTab:AddDivider()
+
 ViewTab:AddSection({Name="ESP"})
 
 local function dadEsp(value)
