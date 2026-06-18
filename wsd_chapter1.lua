@@ -40,7 +40,7 @@ end
 local function tpLookAt(pos, lookTarget)
     local dir = (pos - lookTarget)
     local offset = (dir.Magnitude > 0 and dir.Unit or Vector3.zAxis) * 2
-    local targetCFrame = CFrame.lookAt(lookTarget + offset, lookTarget)
+    local targetCFrame = CFrame.lookAt(lookTarget + offset + Vector3.new(0, 3, 0), lookTarget)
     hrp.CFrame    = targetCFrame  -- Đặt vị trí + hướng nhân vật
     camera.CFrame = targetCFrame  -- Đặt camera nhìn cùng hướng
 end
@@ -143,13 +143,12 @@ local function getAndEatCookedNoodles()
     tpLookAt(hrp.Position,stove.Position)      -- TP đến bếp, nhìn vào bếp
     firePrompt(stove.ProximityPrompt)             -- Bật bếp / nấu
     equipTool("Cooked Noodle")                    -- Cầm mì chín trong Backpack
-    task.wait(0.5)
 
     -- [Bước 3] Đặt mì lên đĩa ───────────────────────────────────────────────
     local plate = getPlate()                      -- Lấy object đĩa
     tpLookAt(hrp.Position, plate.Position)      -- TP đến đĩa, nhìn vào đĩa
     firePrompt(plate.ProximityPrompt)             -- Tương tác lần 1 (đặt mì)
-    task.wait(0.3)
+    task.wait(0.25)
     firePrompt(plate.ProximityPrompt)             -- Tương tác lần 2 (xác nhận)
 
     -- [Bước 4] Về vị trí cũ
@@ -238,9 +237,6 @@ MainTab:AddButton({
     Callback = refillGenerator,
 })
 --AntiSit: Auto escape seats.
-
-
--- AntiSit: Auto escape seats.
 local antiSeatConnection = nil
 
 local function handleSeated(isSeated)
@@ -290,15 +286,22 @@ MainTab:AddToggle({
     Save     = true,
     Visible  = true,
     Disabled = false,
-    Callback = toggleAntiSit, -- Gọi trực tiếp hàm, cực kỳ ngắn gọn
+    Callback = toggleAntiSit,
 })
-MainTab:AddDivider()
 -- ═════════════════════════════════════════════════════════════════════════════
--- SECTION: TELEPORT
+-- TAB: TELEPORT
 -- ═════════════════════════════════════════════════════════════════════════════
-MainTab:AddSection({Name="Teleport"})
+local teleportTab = Window:MakeTab({
+    Name        = "Teleport",
+    Icon        = "rbxassetid://4483345998",
+    Visible     = true,    -- Tab có hiển thị trong sidebar không
+    Disabled    = false,   -- Tab bị vô hiệu hóa (mờ, không click được)
+    PremiumOnly = false,   -- Khoá tab cho Sirius Premium users
+})
 
-MainTab:AddButton({
+teleportTab:AddSection({Name="Teleport"})
+
+teleportTab:AddButton({
     Name = "Teleport to Bed",
     Visible = true,
     Disabled = false,
@@ -307,7 +310,7 @@ MainTab:AddButton({
     end,
 })
 
-MainTab:AddButton({
+teleportTab:AddButton({
     Name = "Teleport to Generator",
     Visible = true,
     Disabled = false,
@@ -316,7 +319,7 @@ MainTab:AddButton({
     end
 })
 
-MainTab:AddButton({
+teleportTab:AddButton({
     Name = "Teleport to Kitchen",
     Visible = true,
     Disabled = false,
@@ -325,22 +328,30 @@ MainTab:AddButton({
     end
 })
 -- ═════════════════════════════════════════════════════════════════════════════
--- SECTION: STATISTICS VALUE
+-- TAB: STATISTICS VALUE
 -- ═════════════════════════════════════════════════════════════════════════════
-MainTab:AddDivider()
-MainTab:AddSection({Name="Statistics"})
+local statsTab = Window:MakeTab({
+    Name        = "Stats",
+    Icon        = "rbxassetid://4483345998",
+    Visible     = true,    -- Tab có hiển thị trong sidebar không
+    Disabled    = false,   -- Tab bị vô hiệu hóa (mờ, không click được)
+    PremiumOnly = false,   -- Khoá tab cho Sirius Premium users
+})
 -- Thay hàm createStatLabel thành:
-local function createStatLabel(text, valueObject)
+local function createStatLabel(text: string, valueObject: IntValue): any
     -- AddParagraph(Title, Content) — Title cố định, Content thay đổi
-    local para = MainTab:AddParagraph(text, "...")
+    local para = statsTab:AddParagraph(text, "...")
 
-    local function update(value)
+    -- Sửa lại: value truyền vào đây là valueObject.Value (kiểu number)
+    local function update(value: number)
+        local num = tostring(value)
         -- Chỉ cập nhật phần Content, Title giữ nguyên
-        para:Set(("%d / 100"):format(value))
+        para:Set(num .. "/ 100")
     end
 
     valueObject.Changed:Connect(update)
     update(valueObject.Value) -- Cập nhật ngay lần đầu
+    
     return para
 end
 
