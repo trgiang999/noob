@@ -34,15 +34,34 @@ local function equipTool(toolName, timeout)
     humanoid:EquipTool(tool)
     return true
 end
+-- ── Helper: Anchor toàn bộ BasePart trong character để tránh physics drift khi TP ──
+local function anchorCharacter()
+    for _, part in pairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.Anchored = true
+        end
+    end
+end
+
+local function unanchorCharacter()
+    for _, part in pairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.Anchored = false
+        end
+    end
+end
 
 -- ── Helper: Teleport + nhìn vào một object ───────────────────────────────────
 -- Phiên bản chính xác hơn: tp đến pos, sau đó nhìn thẳng vào target
 local function tpLookAt(pos, lookTarget)
-    local dir = (pos - lookTarget)
+    local dir    = (pos - lookTarget)
     local offset = (dir.Magnitude > 0 and dir.Unit or Vector3.zAxis) * 2
     local targetCFrame = CFrame.lookAt(lookTarget + offset + Vector3.new(0, 3, 0), lookTarget)
-    hrp.CFrame    = targetCFrame  -- Đặt vị trí + hướng nhân vật
-    camera.CFrame = targetCFrame  -- Đặt camera nhìn cùng hướng
+
+    anchorCharacter()           -- Freeze physics trước khi dịch chuyển
+    hrp.CFrame    = targetCFrame
+    camera.CFrame = targetCFrame
+    task.defer(unanchorCharacter) -- Unanchor sau khi frame hiện tại xong
 end
 
 
