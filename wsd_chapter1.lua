@@ -13,7 +13,7 @@ local camera     = workspace.CurrentCamera
 -- Tìm trong Backpack trước, nếu không có thì chờ tối đa `timeout` giây.
 -- Trả về true nếu equip thành công, false nếu không tìm thấy.
 local function equipTool(toolName, timeout)
-    timeout = timeout or 0.75
+    timeout = timeout or 0.4
     local humanoid = char:WaitForChild("Humanoid")
     local backpack  = player:WaitForChild("Backpack")
 
@@ -135,7 +135,6 @@ local function getAndEatCookedNoodles()
     firstPersonCamera()
     -- [Bước 1] Lấy mì sống từ tủ lạnh ──────────────────────────────────────
     tpLookAt(hrp.Position, fridge.Position)   -- TP đến fridge, nhìn vào fridge
-    task.wait(0.3)
     firePrompt(fridge.ProximityPrompt)            -- Mở tủ lạnh
     equipTool("Raw Noodle")                       -- Cầm mì sống trong Backpack
 
@@ -152,7 +151,7 @@ local function getAndEatCookedNoodles()
     firePrompt(plate.ProximityPrompt)             -- Tương tác lần 2 (xác nhận)
 
     -- [Bước 4] Về vị trí cũ
-    task.wait(0.3)
+    task.wait(0.25)
     hrp.CFrame = originalCFrame
     thirdPersonCamera()
 end
@@ -187,7 +186,7 @@ local function getWater()
     firePrompt(water_Dispenser.ProximityPrompt)
     equipTool("Glass of Water")
     -- [Bước 3] Về vị trí cũ
-    task.wait(0.3)
+    task.wait(0.25)
     hrp.CFrame = originalCFrame
     thirdPersonCamera()
 end
@@ -225,17 +224,16 @@ local function refillGenerator()
     end
 
     tpLookAt(hrp.Position, primary.Position)
-    task.wait(0.5)
+    task.wait(0.25)
     firePrompt(primary:FindFirstChildOfClass("ProximityPrompt"))
 
     -- [2] Equip gas can vừa lấy
     equipTool("gas can")
-    task.wait(0.3)
 
     -- [3] TP đến generator và đổ xăng
     tpLookAt(hrp.Position, generator.Position)
     firePrompt(generator:FindFirstChildOfClass("ProximityPrompt"))
-    task.wait(0.5)
+    task.wait(0.25)
 
     -- [4] Về vị trí ban đầu
     hrp.CFrame = oldCFrame
