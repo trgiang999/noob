@@ -130,7 +130,6 @@ local function getAndEatCookedNoodles()
     tpLookAt(hrp.Position, fridge.Position)   -- TP đến fridge, nhìn vào fridge
     task.wait(0.3)
     firePrompt(fridge.ProximityPrompt)            -- Mở tủ lạnh
-    task.wait(0.2)
     equipTool("Raw Noodle")                       -- Cầm mì sống trong Backpack
 
     -- [Bước 2] Nấu mì trên bếp ──────────────────────────────────────────────
@@ -176,12 +175,10 @@ local function getWater()
     local glass = getDrinkingGlass()
     tpLookAt(hrp.Position, glass.Position)
     firePrompt(glass.ProximityPrompt)
-    task.wait(0.3)
     equipTool("Drinking Glass")
     -- [Bước 2] Rót nước & uống nước ──────────────────────────────────────────────
     tpLookAt(hrp.Position, water_Dispenser.Position)
     firePrompt(water_Dispenser.ProximityPrompt)
-    task.wait(0.3)
     equipTool("Glass of Water")
     -- [Bước 3] Về vị trí cũ
     task.wait(0.3)
