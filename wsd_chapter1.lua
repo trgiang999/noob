@@ -258,10 +258,10 @@ local function createStatLabel(text, valueObject)
     return label
 end
 
-createStatLabel("Generator's fuel", workspace.House.Generator.Bar)
-createStatLabel("Player's thirst", player.Thirst)
-createStatLabel("Player's hunger", player.Hunger)
-createStatLabel("Player's energy", player.Energy)
+createStatLabel("Fuel", workspace.House.Generator.Bar)
+createStatLabel("Thirst", player.Thirst)
+createStatLabel("Hunger", player.Hunger)
+createStatLabel("Energy", player.Energy)
 
 -- ═════════════════════════════════════════════════════════════════════════════
 --  TAB: VIEWING
