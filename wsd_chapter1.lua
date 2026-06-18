@@ -13,7 +13,7 @@ local camera     = workspace.CurrentCamera
 -- Tìm trong Backpack trước, nếu không có thì chờ tối đa `timeout` giây.
 -- Trả về true nếu equip thành công, false nếu không tìm thấy.
 local function equipTool(toolName, timeout)
-    timeout = timeout or 0.5
+    timeout = timeout or 0.75
     local humanoid = char:WaitForChild("Humanoid")
     local backpack  = player:WaitForChild("Backpack")
 
