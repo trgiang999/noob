@@ -10,12 +10,22 @@ local camera     = workspace.CurrentCamera
 
 -- ── Helper: Equip tool từ Backpack theo tên ───────────────────────────────────
 -- Duyệt Backpack, tìm tool trùng tên rồi dùng Humanoid:EquipTool()
-local function equipTool(toolName)
+-- Equip tool theo tên, chờ tối đa `timeout` giây để tool xuất hiện trong Backpack
+local function equipTool(toolName, timeout)
+    timeout = timeout or 3  -- Mặc định chờ tối đa 3 giây
+
     local backpack = player:WaitForChild("Backpack")
-    local tool     = backpack:FindFirstChild(toolName)
-    if tool then
-        char:WaitForChild("Humanoid"):EquipTool(tool)
+
+    -- Chờ tool xuất hiện trong Backpack (thay vì FindFirstChild ngay lập tức)
+    local tool = backpack:WaitForChild(toolName, timeout)
+
+    if not tool then
+        warn(("equipTool: '%s' không tìm thấy sau %ds"):format(toolName, timeout))
+        return false
     end
+
+    char:WaitForChild("Humanoid"):EquipTool(tool)
+    return true
 end
 
 -- ── Helper: Teleport + nhìn vào một object ───────────────────────────────────
@@ -202,7 +212,7 @@ local function refillGenerator()
     tpLookAt(hrp.Position, primary.Position)
     task.wait(0.5)
     firePrompt(primary:FindFirstChildOfClass("ProximityPrompt"))
-
+    
     -- [2] Equip gas can vừa lấy
     equipTool("gas can")
     task.wait(0.3)
