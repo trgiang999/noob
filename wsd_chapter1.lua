@@ -237,6 +237,55 @@ MainTab:AddButton({
     Disabled = false,
     Callback = refillGenerator,
 })
+--AntiSit: Auto escape seats.
+
+
+-- AntiSit: Auto escape seats.
+local antiSeatConnection = nil
+
+local function handleSeated(isSeated)
+    local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+    if isSeated and humanoid then
+        humanoid.Jump = true
+        task.defer(function() if humanoid.Sit then humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end end)
+    end
+end
+
+local function toggleAntiSit(value)
+    if antiSeatConnection then 
+        antiSeatConnection:Disconnect() 
+        antiSeatConnection = nil 
+    end
+    if _G.AntiSitCharacterAddedConnection then _G.AntiSitCharacterAddedConnection:Disconnect()
+        _G.AntiSitCharacterAddedConnection = nil 
+    end
+    
+    local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+    if humanoid then 
+        antiSeatConnection = humanoid.Seated:Connect(handleSeated)
+        if humanoid.Sit then handleSeated(true) end
+    end
+    
+    _G.AntiSitCharacterAddedConnection = player.CharacterAdded:Connect(function(newCharacter)
+        char = newCharacter
+        local newHumanoid = newCharacter:WaitForChild("Humanoid", 5) :: Humanoid?
+        if newHumanoid then
+            antiSeatConnection = newHumanoid.Seated:Connect(handleSeated)
+            if newHumanoid.Sit then handleSeated(true) end
+        end
+    end)
+end
+
+MainTab:AddToggle({
+    Name     = "Anti Sit",
+    Default  = false,
+    Type     = "CheckBox",
+    Flag     = "antiSit",
+    Save     = true,
+    Visible  = true,
+    Disabled = false,
+    Callback = toggleAntiSit, -- Gọi trực tiếp hàm, cực kỳ ngắn gọn
+})
 MainTab:AddDivider()
 -- ═════════════════════════════════════════════════════════════════════════════
 -- SECTION: TELEPORT
@@ -262,7 +311,12 @@ MainTab:AddButton({
 })
 
 MainTab:AddButton({
-    Name = "Teleport to "
+    Name = "Teleport to Kitchen",
+    Visible = true,
+    Disabled = false,
+    Callback = function()
+        hrp.CFrame = CFrame.new(Vector3.new(-117, 5, 19))
+    end
 })
 -- ═════════════════════════════════════════════════════════════════════════════
 -- SECTION: STATISTICS VALUE
