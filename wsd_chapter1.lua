@@ -54,7 +54,7 @@ end
 -- Thay thế tpLookAt — không cần nhìn hướng, chỉ cần đứng gần là fire được
 local function tpTo(position)
     hrp.CFrame = CFrame.new(position + Vector3.new(0, 3, 0))
-    task.wait(0.2)
+    task.wait(0.1)
 end
 -- Helper: Camera handler
 local function firstPersonCamera()
@@ -143,11 +143,11 @@ local function getAndEatCookedNoodles()
     local plate = getPlate()
     tpTo(plate.Position)
     firePrompt(plate.ProximityPrompt)
-    task.wait(0.25)
+    task.wait(0.1)
     firePrompt(plate.ProximityPrompt)
 
     -- [4] Về vị trí cũ
-    task.wait(0.25)
+    task.wait(0.1)
     hrp.CFrame = originalCFrame
 end
 
@@ -183,7 +183,7 @@ local function getWater()
     equipTool("Glass of Water")
 
     -- [3] Về vị trí cũ
-    task.wait(0.25)
+    task.wait(0.1)
     hrp.CFrame = originalCFrame
 end
 
@@ -219,7 +219,7 @@ local function refillGenerator()
     -- [2] Đổ xăng vào generator
     tpTo(generator.Position)
     firePrompt(generator:FindFirstChildOfClass("ProximityPrompt"))
-    task.wait(0.25)
+    task.wait(0.1)
 
     -- [3] Về vị trí ban đầu
     hrp.CFrame = oldCFrame
