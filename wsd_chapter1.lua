@@ -53,7 +53,7 @@ end
 -- ── Helper: TP sát object rồi wait để server nhận vị trí ─────────────────────
 -- Thay thế tpLookAt — không cần nhìn hướng, chỉ cần đứng gần là fire được
 local function tpTo(position)
-    hrp.CFrame = CFrame.new(position + Vector3.new(0, 3, 0))
+    hrp.CFrame = CFrame.new(position)
     task.wait(0.2)
 end
 -- Helper: Camera handler
