@@ -34,35 +34,6 @@ local function equipTool(toolName, timeout)
     humanoid:EquipTool(tool)
     return true
 end
--- ── Helper: Anchor toàn bộ BasePart trong character để tránh physics drift khi TP ──
-local function anchorCharacter()
-    for _, part in pairs(char:GetDescendants()) do
-        if part:IsA("BasePart") then
-            part.Anchored = true
-        end
-    end
-end
-
-local function unanchorCharacter()
-    for _, part in pairs(char:GetDescendants()) do
-        if part:IsA("BasePart") then
-            part.Anchored = false
-        end
-    end
-end
-
--- ── Helper: Teleport + nhìn vào một object ───────────────────────────────────
--- Phiên bản chính xác hơn: tp đến pos, sau đó nhìn thẳng vào target
-local function tpLookAt(pos, lookTarget)
-    local dir    = (pos - lookTarget)
-    local offset = (dir.Magnitude > 0 and dir.Unit or Vector3.zAxis) * 2
-    local targetCFrame = CFrame.lookAt(lookTarget + offset + Vector3.new(0, 3, 0), lookTarget)
-
-    anchorCharacter()           -- Freeze physics trước khi dịch chuyển
-    hrp.CFrame    = targetCFrame
-    camera.CFrame = targetCFrame
-    task.defer(unanchorCharacter) -- Unanchor sau khi frame hiện tại xong
-end
 
 
 -- ── Helper: Kích hoạt ProximityPrompt tức thì (bỏ qua HoldDuration) ──────────
@@ -72,12 +43,18 @@ end
 -- 3. Fire prompt
 -- 4. Khôi phục về giá trị gốc
 local function firePrompt(prompt)
-    local originalDist      = prompt.MaxActivationDistance
+    local originalDist = prompt.MaxActivationDistance
     prompt.MaxActivationDistance = math.huge
-    prompt.HoldDuration     = 0
-    task.wait(0.2)
+    prompt.HoldDuration = 0
     fireproximityprompt(prompt)
     prompt.MaxActivationDistance = originalDist
+end
+
+-- ── Helper: TP sát object rồi wait để server nhận vị trí ─────────────────────
+-- Thay thế tpLookAt — không cần nhìn hướng, chỉ cần đứng gần là fire được
+local function tpTo(position)
+    hrp.CFrame = CFrame.new(position + Vector3.new(0, 3, 0))
+    task.wait(0.2)
 end
 -- Helper: Camera handler
 local function firstPersonCamera()
@@ -151,28 +128,27 @@ end
 
 local function getAndEatCookedNoodles()
     local originalCFrame = hrp.CFrame
-    firstPersonCamera()
-    -- [Bước 1] Lấy mì sống từ tủ lạnh ──────────────────────────────────────
-    tpLookAt(hrp.Position, fridge.Position)   -- TP đến fridge, nhìn vào fridge
-    firePrompt(fridge.ProximityPrompt)            -- Mở tủ lạnh
-    equipTool("Raw Noodle")                       -- Cầm mì sống trong Backpack
 
-    -- [Bước 2] Nấu mì trên bếp ──────────────────────────────────────────────
-    tpLookAt(hrp.Position,stove.Position)      -- TP đến bếp, nhìn vào bếp
-    firePrompt(stove.ProximityPrompt)             -- Bật bếp / nấu
-    equipTool("Cooked Noodle")                    -- Cầm mì chín trong Backpack
+    -- [1] Lấy mì sống từ tủ lạnh
+    tpTo(fridge.Position)
+    firePrompt(fridge.ProximityPrompt)
+    equipTool("Raw Noodle")
 
-    -- [Bước 3] Đặt mì lên đĩa ───────────────────────────────────────────────
-    local plate = getPlate()                      -- Lấy object đĩa
-    tpLookAt(hrp.Position, plate.Position)      -- TP đến đĩa, nhìn vào đĩa
-    firePrompt(plate.ProximityPrompt)             -- Tương tác lần 1 (đặt mì)
+    -- [2] Nấu mì trên bếp
+    tpTo(stove.Position)
+    firePrompt(stove.ProximityPrompt)
+    equipTool("Cooked Noodle")
+
+    -- [3] Đặt mì lên đĩa (fire 2 lần)
+    local plate = getPlate()
+    tpTo(plate.Position)
+    firePrompt(plate.ProximityPrompt)
     task.wait(0.25)
-    firePrompt(plate.ProximityPrompt)             -- Tương tác lần 2 (xác nhận)
+    firePrompt(plate.ProximityPrompt)
 
-    -- [Bước 4] Về vị trí cũ
+    -- [4] Về vị trí cũ
     task.wait(0.25)
     hrp.CFrame = originalCFrame
-    thirdPersonCamera()
 end
 
 MainTab:AddButton({
@@ -194,20 +170,21 @@ end
 
 local function getWater()
     local originalCFrame = hrp.CFrame
-    firstPersonCamera()
-    -- [Bước 1] Lấy cốc ──────────────────────────────────────
+
+    -- [1] Lấy cốc từ kệ
     local glass = getDrinkingGlass()
-    tpLookAt(hrp.Position, glass.Position)
+    tpTo(glass.Position)
     firePrompt(glass.ProximityPrompt)
     equipTool("Drinking Glass")
-    -- [Bước 2] Rót nước & uống nước ──────────────────────────────────────────────
-    tpLookAt(hrp.Position, water_Dispenser.Position)
+
+    -- [2] Rót nước từ máy lọc
+    tpTo(water_Dispenser.Position)
     firePrompt(water_Dispenser.ProximityPrompt)
     equipTool("Glass of Water")
-    -- [Bước 3] Về vị trí cũ
+
+    -- [3] Về vị trí cũ
     task.wait(0.25)
     hrp.CFrame = originalCFrame
-    thirdPersonCamera()
 end
 
 MainTab:AddButton({
@@ -225,38 +202,27 @@ MainTab:AddButton({
 local generator = workspace.House.Generator.Button
 local function refillGenerator()
     local oldCFrame = hrp.CFrame
-    firstPersonCamera()
 
-    -- [1] Lấy gas can mỗi lần gọi (vì can cũ có thể đã bị destroy sau lần trước)
+    -- [1] Lấy gas can (dynamic object, lấy lại mỗi lần)
     local can     = workspace.House.GasCans:GetChildren()[1]
     local primary = can and can:FindFirstChild("Primary")
 
-    -- Guard: không tìm thấy can → báo lỗi, thoát sớm
     if not primary then
-        thirdPersonCamera()
-        OrionLib:MakeNotification({
-            Name    = "Error!",
-            Content = "Gas can not found!",
-            Time    = 3,
-        })
+        OrionLib:MakeNotification({ Name = "Error!", Content = "Gas can not found!", Time = 3 })
         return
     end
 
-    tpLookAt(hrp.Position, primary.Position)
-    task.wait(0.25)
+    tpTo(primary.Position)
     firePrompt(primary:FindFirstChildOfClass("ProximityPrompt"))
-
-    -- [2] Equip gas can vừa lấy
     equipTool("gas can")
 
-    -- [3] TP đến generator và đổ xăng
-    tpLookAt(hrp.Position, generator.Position)
+    -- [2] Đổ xăng vào generator
+    tpTo(generator.Position)
     firePrompt(generator:FindFirstChildOfClass("ProximityPrompt"))
     task.wait(0.25)
 
-    -- [4] Về vị trí ban đầu
+    -- [3] Về vị trí ban đầu
     hrp.CFrame = oldCFrame
-    thirdPersonCamera()
 end
 
 MainTab:AddButton({
