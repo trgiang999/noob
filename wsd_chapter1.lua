@@ -54,7 +54,7 @@ end
 -- Thay thế tpLookAt — không cần nhìn hướng, chỉ cần đứng gần là fire được
 local function tpTo(position)
     hrp.CFrame = CFrame.new(position + Vector3.new(0, 3, 0))
-    task.wait(0.1)
+    task.wait(0.2)
 end
 -- Helper: Camera handler
 local function firstPersonCamera()
