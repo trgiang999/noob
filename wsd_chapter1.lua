@@ -44,10 +44,12 @@ end
 -- 4. Khôi phục về giá trị gốc
 local function firePrompt(prompt)
     local originalDist = prompt.MaxActivationDistance
+    local originalHD = prompt.HoldDuration
     prompt.MaxActivationDistance = math.huge
     prompt.HoldDuration = 0
     fireproximityprompt(prompt)
     prompt.MaxActivationDistance = originalDist
+    prompt.HoldDuration = originalHD
 end
 
 -- ── Helper: TP sát object rồi wait để server nhận vị trí ─────────────────────
@@ -87,26 +89,12 @@ local MainTab = Window:MakeTab({
     Disabled = false,
 })
 
+-- ═════════════════════════════════════════════════════════════════════════════
+--  SECTION: Main.Main
+-- ═════════════════════════════════════════════════════════════════════════════
 MainTab:AddSection({ Name = "Main" })
 
--- ┌─ Instant ProximityPrompt ───────────────────────────────────────────────┐
--- │  Hook vào PromptButtonHoldBegan: mỗi khi người chơi giữ bất kỳ prompt  │
--- │  nào, đặt HoldDuration = 0 rồi fireprox ngay lập tức.                  │
--- └────────────────────────────────────────────────────────────────────────-┘
-local function instantProximityPrompt()
-    game:GetService("ProximityPromptService").PromptButtonHoldBegan:Connect(
-        function(prompt)
-            firePrompt(prompt)
-        end
-    )
-end
 
-MainTab:AddButton({
-    Name     = "Instant ProximityPrompt",
-    Visible  = true,
-    Disabled = false,
-    Callback = instantProximityPrompt,
-})
 
 -- ┌─ Get Cooked Noodles ────────────────────────────────────────────────────┐
 -- │  Quy trình tự động nấu mì:                                              │
@@ -231,6 +219,13 @@ MainTab:AddButton({
     Disabled = false,
     Callback = refillGenerator,
 })
+
+MainTab:AddDivider()
+MainTab:AddSection({Name = "Misc"})
+-- ═════════════════════════════════════════════════════════════════════════════
+-- SECTION: Main.Misc
+-- ═════════════════════════════════════════════════════════════════════════════
+
 --AntiSit: Auto escape seats.
 local antiSeatConnection = nil
 
@@ -282,6 +277,37 @@ MainTab:AddToggle({
     Visible  = true,
     Disabled = false,
     Callback = toggleAntiSit,
+})
+
+-- ┌─ Instant ProximityPrompt ───────────────────────────────────────────────┐
+-- │  Toggle: tự động fire bất kỳ ProximityPrompt nào ngay khi giữ.         │
+-- │  connection lưu ngoài hàm để Disconnect() được khi tắt toggle.         │
+-- └────────────────────────────────────────────────────────────────────────-┘
+local instantPPConnection = nil   -- <-- khai báo NGOÀI hàm
+
+local function instantProximityPrompt(value)
+    if value then
+        instantPPConnection = game:GetService("ProximityPromptService")
+            .PromptButtonHoldBegan:Connect(function(prompt)
+                firePrompt(prompt)
+            end)
+    elseif instantPPConnection then   -- guard: chỉ disconnect nếu đang có
+        instantPPConnection:Disconnect()
+        instantPPConnection = nil
+    end
+end
+
+MainTab:AddToggle({
+    Name     = "Instant Interact",
+    Default  = false,          -- Giá trị mặc định
+    Type     = "CheckBox",       -- "Switch" hoặc "CheckBox"
+    Flag     = "instantPP",    -- ID dùng với OrionLib.Flags
+    Save     = true,           -- Lưu vào config
+    Visible  = true,
+    Disabled = false,
+    Callback = function(value)
+        instantProximityPrompt(value)
+    end,
 })
 -- ═════════════════════════════════════════════════════════════════════════════
 -- TAB: TELEPORT
@@ -344,7 +370,8 @@ local function createStatLabel(text: string, valueObject: IntValue): any
         end)
     end
 
-    valueObject.Changed:Connect(update)
+    OrionLib:AddConnect(valueObject.Changed, update)
+
     update(valueObject.Value)
 
     return para
