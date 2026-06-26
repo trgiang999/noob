@@ -516,7 +516,7 @@ local function loopfb(value)
     end
 end
 
-ViewTab:AddButton({
+ViewTab:AddToggle({
     Name     = "FullBright",
     Default  = false,          -- Initial value
     Type     = "CheckBox",       -- "Switch" or "CheckBox"
