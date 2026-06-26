@@ -461,6 +461,41 @@ ViewTab:AddToggle({
 -- SECTION: CAMERA
 -- ═════════════════════════════════════════════════════════════════════════════
 ViewTab:AddSection({Name="Camera"})
+local brightLoop
+local function loopfb(value)
+    if value then
+        if brightLoop then
+            brightLoop:Disconnect()
+        end
+        local function brightFunc()
+            Lighting.Brightness = 2
+            Lighting.ClockTime = 14
+            Lighting.FogEnd = 100000
+            Lighting.GlobalShadows = false
+            Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+        end
+
+        brightLoop = RunService.RenderStepped:Connect(brightFunc)
+    else
+        if brightLoop then
+            brightLoop:Disconnect()
+        end
+    end
+end
+
+ViewTab:AddToggle({
+    Name     = "FullBright",
+    Default  = false,          -- Initial value
+    Type     = "CheckBox",       -- "Switch" or "CheckBox"
+    Flag     = "fullBright",    -- ID used with OrionLib.Flags
+    Save     = true,           -- Save to config
+    Visible  = true,
+    Disabled = false,
+    Callback = function(value)
+        loopfb(value)
+    end,
+})
+
 local function fixCam()
     thirdPersonCamera()
     OrionLib:MakeNotification({
@@ -494,40 +529,7 @@ ViewTab:AddButton({
     Callback = force1stCam
 })
 
-local brightLoop
-local function loopfb(value)
-    if value then
-        if brightLoop then
-            brightLoop:Disconnect()
-        end
-        local function brightFunc()
-            Lighting.Brightness = 2
-            Lighting.ClockTime = 14
-            Lighting.FogEnd = 100000
-            Lighting.GlobalShadows = false
-            Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-        end
 
-        brightLoop = RunService.RenderStepped:Connect(brightFunc)
-    else
-        if brightLoop then
-            brightLoop:Disconnect()
-        end
-    end
-end
-
-ViewTab:AddToggle({
-    Name     = "FullBright",
-    Default  = false,          -- Initial value
-    Type     = "CheckBox",       -- "Switch" or "CheckBox"
-    Flag     = "myFeature",    -- ID used with OrionLib.Flags
-    Save     = true,           -- Save to config
-    Visible  = true,
-    Disabled = false,
-    Callback = function(value)
-        loopfb(value)
-    end,
-})
 ViewTab:AddButton({
     Name = "NoFog",
     Visible = true,
