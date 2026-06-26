@@ -1,6 +1,21 @@
 -- ── Khởi động thư viện Orion ──────────────────────────────────────────────────
-local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/trgiang999/noob/refs/heads/main/OrionLibSource.lua"))()
+local function githubGetRaw(user, repo, branch, path)
+    -- Thêm query string chứa timestamp (os.time) để triệt tiêu cache hoàn toàn
+    local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s?t=%s")
+        :format(user, repo, branch, path, os.time())
 
+    -- Gọi trực tiếp để lấy plain text, nhanh hơn việc parse JSON và decode Base64
+    local success, content = pcall(game.HttpGetAsync, game, rawUrl)
+    
+    if not success or content == "404: Not Found" then
+        error("githubGet failed: Kiểm tra lại đường dẫn hoặc kết nối mạng!")
+    end
+
+    return content
+end
+
+-- Thực thi loadstring trực tiếp
+local OrionLib = loadstring(githubGetRaw("trgiang999", "noob", "main", "OrionLibSource.lua"))()
 
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
