@@ -1,6 +1,6 @@
 -- ── Khởi động thư viện Orion ──────────────────────────────────────────────────
 -- New OrionLib: https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua
-local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Giangplay/Script/main/Orion_Library_PE_V2.lua"))()
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/trgiang999/noob/refs/heads/main/OrionLibSource.lua"))()
 
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
@@ -517,16 +517,16 @@ local function loopfb(value)
 end
 
 ViewTab:AddButton({
-    Name = "FullBright",
-    Visible = true,
+    Name     = "FullBright",
+    Default  = false,          -- Initial value
+    Type     = "CheckBox",       -- "Switch" or "CheckBox"
+    Flag     = "myFeature",    -- ID used with OrionLib.Flags
+    Save     = true,           -- Save to config
+    Visible  = true,
     Disabled = false,
-    Callback = function()
-        Lighting.Brightness = 2
-        Lighting.ClockTime = 14
-        Lighting.FogEnd = 100000
-        Lighting.GlobalShadows = false
-        Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-    end
+    Callback = function(value)
+        loopfb(value)
+    end,
 })
 ViewTab:AddButton({
     Name = "NoFog",
