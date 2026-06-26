@@ -1,5 +1,5 @@
 -- ── Khởi động thư viện Orion ──────────────────────────────────────────────────
-local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"))()
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Giangplay/Script/main/Orion_Library_PE_V2.lua"))()
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
 local Players    = game:GetService("Players")
@@ -71,12 +71,22 @@ end
 --  Tạo cửa sổ UI chính
 -- ─────────────────────────────────────────────────────────────────────────────
 local Window = OrionLib:MakeWindow({
-    Name            = "G_Hub",
-    SearchBar       = { Default = "Search Tabs", ClearTextOnFocus = true },
+    Name            = "G_Hub - Chapter 1",
+    SearchBar       = {
+        Default          = "Search tabs...",
+        ClearTextOnFocus = true,
+    },
     IntroToggleIcon = "rbxassetid://7734091286",
     HidePremium     = false,
     SaveConfig      = true,
     ConfigFolder    = "WSD_FreeHub",
+    IntroEnabled    = true,
+    IntroText       = "G_Hub - Chapter 1",
+    IntroIcon       = "rbxassetid://7734091286",
+    Icon            = "rbxassetid://7734091286",
+    CloseCallback   = function()
+        print("UI closed")
+    end,
 })
 
 -- ═════════════════════════════════════════════════════════════════════════════
