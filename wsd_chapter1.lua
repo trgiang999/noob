@@ -17,15 +17,7 @@ end
 -- Thực thi loadstring trực tiếp
 local OrionLib = loadstring(githubGetRaw("trgiang999", "noob", "main", "OrionLibSource.lua"))()
 
-if getgenv().GHUB_LOADED then
-    OrionLib:MakeNotification({
-        Name    = "Warning!",                          -- Notification title
-        Content = "The script is already running!",            -- Notification body text
-        Image   = "rbxassetid://4483345998",        -- Icon to the left of the title
-        Time    = 3,      
-    })
-    return 
-end
+if getgenv().GHUB_LOADED then return end
 getgenv().GHUB_LOADED = true
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
