@@ -43,9 +43,6 @@ local OrionLib = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua"
 ))()
 ```
-
-> **Note:** You do **not** need to call `OrionLib:Init()` — the source has **no** `Init()` function. Just call `OrionLib:MakeWindow()` directly.
-
 ---
 
 ## 2. Global Configuration
