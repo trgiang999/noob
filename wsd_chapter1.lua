@@ -474,8 +474,9 @@ local function loopfb(value)
             Lighting.GlobalShadows = false
             Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
         end
-
-        brightLoop = RunService.RenderStepped:Connect(brightFunc)
+        brightLoop = OrionLib:AddConnect(game:GetService("RunService").RenderStepped, function()
+            brightFunc()
+        end)
     else
         if brightLoop then
             brightLoop:Disconnect()
