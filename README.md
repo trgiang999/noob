@@ -1,8 +1,5 @@
 # Orion Library — Complete Documentation
 
-> This document was fully rewritten from `OrionLibSource.luau`.
-> Inaccuracies and inconsistencies with the original source have been corrected.
-
 ---
 
 ## Table of Contents
