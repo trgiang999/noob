@@ -3,7 +3,7 @@ local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/trgi
 
 
 -- Anti Execute đè script hiện tại
-if getgenv().GHUB_LOADED then
+if _G.GHUB_LOADED then
     OrionLib:MakeNotification({
         Name    = "Warning",                          -- Tiêu đề thông báo
         Content = "You're already executing the script!",            -- Nội dung thông báo
@@ -12,7 +12,7 @@ if getgenv().GHUB_LOADED then
     })
     return 
 end
-getgenv().GHUB_LOADED = true
+_G.GHUB_LOADED = true
 
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
@@ -486,7 +486,7 @@ local function loopfb(value)
             Lighting.GlobalShadows = false
             Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
         end
-        brightLoop = OrionLib:AddConnect(game:GetService("RunService").RenderStepped, function()
+        brightLoop = OrionLib:AddConnect(RunService.RenderStepped, function()
             brightFunc()
         end)
     else
@@ -584,6 +584,6 @@ MiscTab:AddButton({
     Callback = function()
         OrionLib:Destroy()  -- Dùng OrionLib:Destroy() thay vì Window:Destroy()
                             -- để ngắt sạch tất cả connection
-        getgenv().GHUB_LOADED = false
+        _G.GHUB_LOADED = false
     end,
 })
