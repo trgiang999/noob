@@ -1,3 +1,4 @@
+--CREDITS: https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua
 local cloneref = (cloneref or clonereference or function(instance: any)
     return instance
 end)
