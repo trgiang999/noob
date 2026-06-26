@@ -1,6 +1,18 @@
 -- ── Khởi động thư viện Orion ──────────────────────────────────────────────────
--- New OrionLib: https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua
 local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/trgiang999/noob/refs/heads/main/OrionLibSource.lua"))()
+
+
+-- Anti Execute đè script hiện tại
+if getgenv().GHUB_LOADED then
+    OrionLib:MakeNotification({
+        Name    = "Warning",                          -- Tiêu đề thông báo
+        Content = "You're already executing the script!",            -- Nội dung thông báo
+        Image   = "rbxassetid://4483345998",        -- Icon bên trái tiêu đề
+        Time    = 3,
+    })
+    return 
+end
+getgenv().GHUB_LOADED = true
 
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
@@ -572,5 +584,6 @@ MiscTab:AddButton({
     Callback = function()
         OrionLib:Destroy()  -- Dùng OrionLib:Destroy() thay vì Window:Destroy()
                             -- để ngắt sạch tất cả connection
+        getgenv().GHUB_LOADED = false
     end,
 })
