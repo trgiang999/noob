@@ -1,12 +1,14 @@
 -- ── Khởi động thư viện Orion ──────────────────────────────────────────────────
+-- New OrionLib: https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua
 local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Giangplay/Script/main/Orion_Library_PE_V2.lua"))()
+
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
+local RunService = game:GetService("RunService")
 local Players    = game:GetService("Players")
 local player     = Players.LocalPlayer
 local char       = player.Character or player.CharacterAdded:Wait()
 local hrp        = char:WaitForChild("HumanoidRootPart")
-local camera     = workspace.CurrentCamera
 
 -- ── Helper: Equip tool từ Backpack theo tên ───────────────────────────────────
 -- Equip tool theo tên.
@@ -230,7 +232,6 @@ MainTab:AddButton({
     Callback = refillGenerator,
 })
 
-MainTab:AddDivider()
 MainTab:AddSection({Name = "Misc"})
 -- ═════════════════════════════════════════════════════════════════════════════
 -- SECTION: Main.Misc
@@ -459,7 +460,6 @@ ViewTab:AddToggle({
 -- ═════════════════════════════════════════════════════════════════════════════
 -- SECTION: CAMERA
 -- ═════════════════════════════════════════════════════════════════════════════
-ViewTab:AddDivider()
 ViewTab:AddSection({Name="Camera"})
 local function fixCam()
     thirdPersonCamera()
@@ -494,6 +494,53 @@ ViewTab:AddButton({
     Callback = force1stCam
 })
 
+local brightLoop
+local function loopfb(value)
+    if value then
+        if brightLoop then
+            brightLoop:Disconnect()
+        end
+        local function brightFunc()
+            Lighting.Brightness = 2
+            Lighting.ClockTime = 14
+            Lighting.FogEnd = 100000
+            Lighting.GlobalShadows = false
+            Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+        end
+
+        brightLoop = RunService.RenderStepped:Connect(brightFunc)
+    else
+        if brightLoop then
+            brightLoop:Disconnect()
+        end
+    end
+end
+
+ViewTab:AddButton({
+    Name = "FullBright",
+    Visible = true,
+    Disabled = false,
+    Callback = function()
+        Lighting.Brightness = 2
+        Lighting.ClockTime = 14
+        Lighting.FogEnd = 100000
+        Lighting.GlobalShadows = false
+        Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+    end
+})
+ViewTab:AddButton({
+    Name = "NoFog",
+    Visible = true,
+    Disabled = false,
+    Callback = function()
+        Lighting.FogEnd = 100000
+        for i,v in pairs(Lighting:GetDescendants()) do
+            if v:IsA("Atmosphere") then
+                v:Destroy()
+            end
+        end
+    end
+})
 -- ═════════════════════════════════════════════════════════════════════════════
 --  TAB: Misc
 -- ═════════════════════════════════════════════════════════════════════════════
@@ -514,31 +561,6 @@ MiscTab:AddButton({
     end
 })
 
-MiscTab:AddButton({
-    Name = "FullBright",
-    Visible = true,
-    Disabled = false,
-    Callback = function()
-        Lighting.Brightness = 2
-        Lighting.ClockTime = 14
-        Lighting.FogEnd = 100000
-        Lighting.GlobalShadows = false
-        Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-    end
-})
-MiscTab:AddButton({
-    Name = "NoFog",
-    Visible = true,
-    Disabled = false,
-    Callback = function()
-        Lighting.FogEnd = 100000
-        for i,v in pairs(Lighting:GetDescendants()) do
-            if v:IsA("Atmosphere") then
-                v:Destroy()
-            end
-        end
-    end
-})
 -- Nút huỷ toàn bộ UI Orion
 MiscTab:AddButton({
     Name     = "Destroy UI",
