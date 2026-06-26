@@ -1296,16 +1296,10 @@ function OrionLib:MakeWindow(WindowConfig)
                 if UserInputService.TouchEnabled then
                         MobileReopenButton.Visible = true
                 end
-				local hideguitext = ''
-				if isMobile then
-					hideguitext = 'interact icon to reopen'
-				else
-					hideguitext = 'Press key '.._currentKey.Name .. " to reopen"
-				end
                 OrionLib:MakeNotification({
                         Name = "Hide Gui",
-                        Content = hideguitext,
-                        Time = 3
+                        Content = (isMobile and "interact icon to reopen" or "Press Key ".._currentKey.Name).." To Repoen gui",
+                        Time = 5
                 })
                 OrionLib:SafeScript(WindowConfig.CloseCallback)
         end)
