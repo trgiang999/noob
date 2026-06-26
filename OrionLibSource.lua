@@ -1724,47 +1724,71 @@ function OrionLib:MakeWindow(WindowConfig)
 						    end
 						    return LabelFunction
 						end
-                        function ElementFunction:AddParagraph(Text, Content)
-                                Text = Text or "Text"
-                                Content = Content or "Content"
+						function ElementFunction:AddParagraph(Text, Content)
+							Text    = Text    or "Text"
+							Content = Content or "Content"
 
-                                local ParagraphFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 5), {
-                                        Size = UDim2.new(1, 0, 0, 30),
-                                        BackgroundTransparency = 0.7,
-                                        Parent = ItemParent
-                                }), {
-                                        AddThemeObject(SetProps(MakeElement("Label", Text, 15), {
-                                                Size = UDim2.new(1, -12, 0, 14),
-                                                Position = UDim2.new(0, 12, 0, 10),
-                                                Font = Enum.Font.GothamBold,
-                                                Name = "Title"
-                                        }), "Text"),
-                                        AddThemeObject(SetProps(MakeElement("Label", "", 13), {
-                                                Size = UDim2.new(1, -24, 0, 0),
-                                                Position = UDim2.new(0, 12, 0, 26),
-                                                Font = Enum.Font.GothamSemibold,
-                                                Name = "Content",
-                                                TextWrapped = true
-                                        }), "TextDark"),
-                                        AddThemeObject(MakeElement("Stroke"), "Stroke")
-                                }), "Second")
+							-- ── Container ──────────────────────────────────────────────────────────
+							local ParagraphFrame = AddThemeObject(SetChildren(SetProps(
+								MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 5),
+								{
+									Size                = UDim2.new(1, 0, 0, 38),
+									BackgroundTransparency = 0,
+									Parent              = ItemParent,
+									ClipsDescendants    = false,
+								}
+							), {
+								-- Padding bên trong
+								Create("UIPadding", {
+									PaddingLeft   = UDim.new(0, 12),
+									PaddingRight  = UDim.new(0, 12),
+									PaddingTop    = UDim.new(0, 10),
+									PaddingBottom = UDim.new(0, 10),
+								}),
+								-- Layout tự động xếp dọc
+								Create("UIListLayout", {
+									SortOrder             = Enum.SortOrder.LayoutOrder,
+									FillDirection         = Enum.FillDirection.Vertical,
+									HorizontalAlignment   = Enum.HorizontalAlignment.Left,
+									Padding               = UDim.new(0, 4),
+								}),
+								-- Tiêu đề
+								AddThemeObject(SetProps(MakeElement("Label", Text, 14), {
+									Size            = UDim2.new(1, 0, 0, 16),
+									Font            = Enum.Font.GothamBold,
+									Name            = "Title",
+									TextWrapped     = false,
+									LayoutOrder     = 1,
+								}), "Text"),
+								-- Nội dung (tự wrap và co giãn theo text)
+								AddThemeObject(SetProps(MakeElement("Label", Content, 13), {
+									Size            = UDim2.new(1, 0, 0, 0),   -- height = 0, sẽ tự resize
+									AutomaticSize   = Enum.AutomaticSize.Y,
+									Font            = Enum.Font.GothamSemibold,
+									Name            = "Content",
+									TextWrapped     = true,
+									LayoutOrder     = 2,
+								}), "TextDark"),
+								AddThemeObject(MakeElement("Stroke"), "Stroke"),
+							}), "Second")
 
-                                AddConnection(ParagraphFrame.Content:GetPropertyChangedSignal("Text"), function()
-                                        ParagraphFrame.Content.Size = UDim2.new(1, -24, 0, ParagraphFrame.Content.TextBounds.Y)
-                                        ParagraphFrame.Size = UDim2.new(1, 0, 0, ParagraphFrame.Content.TextBounds.Y + 35)
-                                end)
+							-- ── Auto-resize container theo UIListLayout ─────────────────────────────
+							-- Dùng AutomaticSize thay vì đọc TextBounds → không bao giờ bị giật
+							ParagraphFrame.AutomaticSize = Enum.AutomaticSize.Y
 
-                                ParagraphFrame.Content.Text = Content
+							-- ── API ────────────────────────────────────────────────────────────────
+							local ParagraphFunction = {}
 
-                                local ParagraphFunction = {}
-                                function ParagraphFunction:Set(ToChange)
-	                                if getgenv().Destroy then return end
-	                                if ParagraphFrame and ParagraphFrame:FindFirstChild("Content") then
-                                        ParagraphFrame.Content.Text = ToChange
-                                    end
-                                end
-                                return ParagraphFunction
-                        end    
+							function ParagraphFunction:Set(ToChange)
+								if getgenv().Destroy then return end
+								local content = ParagraphFrame and ParagraphFrame:FindFirstChild("Content")
+								if content then
+									content.Text = ToChange
+								end
+							end
+
+							return ParagraphFunction
+						end
                         function ElementFunction:AddButton(ButtonConfig)
                                 ButtonConfig = ButtonConfig or {}
                                 ButtonConfig.Visible = ButtonConfig.Visible or true
