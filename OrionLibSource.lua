@@ -1,4 +1,4 @@
-print("Orion Library Fixed.")
+print("2:10")
 local cloneref = (cloneref or clonereference or function(instance: any)
     return instance
 end)
@@ -1299,7 +1299,7 @@ function OrionLib:MakeWindow(WindowConfig)
                 end
                 OrionLib:MakeNotification({
                         Name = "Hide Gui",
-                        Content = (isMobile and "interact icon to reopen" or "Press Key ".._currentKey.Name).." To Repoen gui",
+                        Content = ((isMobile and "interact icon to reopen") or ("Press Key ".._currentKey.Name).." to Reopen gui"),
                         Time = 5
                 })
                 OrionLib:SafeScript(WindowConfig.CloseCallback)
