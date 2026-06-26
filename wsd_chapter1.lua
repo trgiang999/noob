@@ -1,49 +1,24 @@
 -- ── Khởi động thư viện Orion ──────────────────────────────────────────────────
 local function githubGetRaw(user, repo, branch, path)
-    -- Thêm query string chứa timestamp (os.time) để triệt tiêu cache hoàn toàn
     local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s?t=%s")
         :format(user, repo, branch, path, os.time())
-
-    -- Gọi trực tiếp để lấy plain text, nhanh hơn việc parse JSON và decode Base64
     local success, content = pcall(game.HttpGetAsync, game, rawUrl)
-    
     if not success or content == "404: Not Found" then
         error("githubGet failed: Kiểm tra lại đường dẫn hoặc kết nối mạng!")
     end
-
     return content
 end
 
--- Thực thi loadstring trực tiếp
 local OrionLib = loadstring(githubGetRaw("trgiang999", "noob", "main", "OrionLibSource.lua"))()
 
--- ── Khởi động thư viện Orion ──────────────────────────────────────────────────
-local function githubGetRaw(user, repo, branch, path)
-    local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s?t=%s")
-        :format(user, repo, branch, path, os.time())
-
-    local success, content = pcall(game.HttpGetAsync, game, rawUrl)
-    
-    if not success or content == "404: Not Found" then
-        error("githubGet failed: Kiểm tra lại đường dẫn hoặc kết nối mạng!")
-    end
-
-    return content
-end
-
--- Thực thi loadstring trực tiếp để lấy OrionLib
-local OrionLib = loadstring(githubGetRaw("trgiang999", "noob", "main", "OrionLibSource.lua"))()
-
--- ── Kiểm tra Script đã chạy trước đó chưa ──────────────────────────────────────
 if getgenv().GHUB_LOADED then 
-    -- Nếu đã chạy, hiển thị thông báo cảnh báo
     OrionLib:MakeNotification({
         Name    = "Warning!",                          
         Content = "The script is already running!",            
         Image   = "rbxassetid://4483345998",        
         Time    = 3,      
     })
-    return -- Dừng script ngay lập tức, không chạy phần code phía dưới nữa
+    return
 end
 
 -- Đánh dấu script đã được kích hoạt lần đầu thành công
@@ -627,5 +602,8 @@ MiscTab:AddButton({
         OrionLib:Destroy()  -- Dùng OrionLib:Destroy() thay vì Window:Destroy()
                             -- để ngắt sạch tất cả connection
         getgenv().GHUB_LOADED = false
+        if instantPPConnection then
+            instantPPConnection:Disconnect()
+        end
     end,
 })
