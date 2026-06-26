@@ -1,4 +1,3 @@
-print("2:10")
 local cloneref = (cloneref or clonereference or function(instance: any)
     return instance
 end)
