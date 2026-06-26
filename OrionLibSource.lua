@@ -1300,7 +1300,8 @@ function OrionLib:MakeWindow(WindowConfig)
 				if isMobile then
 					hideguitext = 'interact icon to reopen'
 				else
-					hideguitext = 'Press key '.._currentKey.Name .. "to reopen"
+					hideguitext = 'Press key '.._currentKey.Name .. " to reopen"
+				end
                 OrionLib:MakeNotification({
                         Name = "Hide Gui",
                         Content = hideguitext,
