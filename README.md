@@ -1,5 +1,6 @@
 # Orion Library — Complete Documentation
 
+> Credits: Credits to ArticleHub for the source(https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/Library/Orion/Source.lua)
 ---
 
 ## Table of Contents
