@@ -17,8 +17,45 @@ end
 -- Thực thi loadstring trực tiếp
 local OrionLib = loadstring(githubGetRaw("trgiang999", "noob", "main", "OrionLibSource.lua"))()
 
-if getgenv().GHUB_LOADED then return end
+-- ── Khởi động thư viện Orion ──────────────────────────────────────────────────
+local function githubGetRaw(user, repo, branch, path)
+    local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s?t=%s")
+        :format(user, repo, branch, path, os.time())
+
+    local success, content = pcall(game.HttpGetAsync, game, rawUrl)
+    
+    if not success or content == "404: Not Found" then
+        error("githubGet failed: Kiểm tra lại đường dẫn hoặc kết nối mạng!")
+    end
+
+    return content
+end
+
+-- Thực thi loadstring trực tiếp để lấy OrionLib
+local OrionLib = loadstring(githubGetRaw("trgiang999", "noob", "main", "OrionLibSource.lua"))()
+
+-- ── Kiểm tra Script đã chạy trước đó chưa ──────────────────────────────────────
+if getgenv().GHUB_LOADED then 
+    -- Nếu đã chạy, hiển thị thông báo cảnh báo
+    OrionLib:MakeNotification({
+        Name    = "Warning!",                          
+        Content = "The script is already running!",            
+        Image   = "rbxassetid://4483345998",        
+        Time    = 3,      
+    })
+    return -- Dừng script ngay lập tức, không chạy phần code phía dưới nữa
+end
+
+-- Đánh dấu script đã được kích hoạt lần đầu thành công
 getgenv().GHUB_LOADED = true
+
+-- ── Phần code chính của Script đặt ở phía dưới này ───────────────────────────
+OrionLib:MakeNotification({
+    Name    = "Success",
+    Content = "Script loaded successfully!",
+    Time    = 3
+})
+
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
