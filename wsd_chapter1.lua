@@ -2,18 +2,6 @@
 local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/trgiang999/noob/refs/heads/main/OrionLibSource.lua"))()
 
 
--- Anti Execute đè script hiện tại
-if _G.GHUB_LOADED then
-    OrionLib:MakeNotification({
-        Name    = "Warning",                          -- Tiêu đề thông báo
-        Content = "You're already executing the script!",            -- Nội dung thông báo
-        Image   = "rbxassetid://4483345998",        -- Icon bên trái tiêu đề
-        Time    = 3,
-    })
-    return 
-end
-_G.GHUB_LOADED = true
-
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
@@ -584,6 +572,6 @@ MiscTab:AddButton({
     Callback = function()
         OrionLib:Destroy()  -- Dùng OrionLib:Destroy() thay vì Window:Destroy()
                             -- để ngắt sạch tất cả connection
-        _G.GHUB_LOADED = false
+
     end,
 })
