@@ -40,19 +40,14 @@ local char       = player.Character or player.CharacterAdded:Wait()
 local hrp        = char:WaitForChild("HumanoidRootPart")
 
 -- ── Helper: Equip tool từ Backpack theo tên ───────────────────────────────────
--- Equip tool theo tên.
--- Tìm trong Backpack trước, nếu không có thì chờ tối đa `timeout` giây.
--- Trả về true nếu equip thành công, false nếu không tìm thấy.
 local function equipTool(toolName, timeout)
     timeout = timeout or 0.4
     local humanoid = char:WaitForChild("Humanoid")
     local backpack  = player:WaitForChild("Backpack")
 
-    -- Tìm ngay lập tức trước (tool có thể đã ở Backpack rồi)
     local tool = backpack:FindFirstChild(toolName)
-               or char:FindFirstChild(toolName) -- hoặc đang được equipped trong char
+               or char:FindFirstChild(toolName)
 
-    -- Nếu chưa có → chờ nó xuất hiện trong Backpack
     if not tool then
         tool = backpack:WaitForChild(toolName, timeout)
     end
@@ -68,11 +63,6 @@ end
 
 
 -- ── Helper: Kích hoạt ProximityPrompt tức thì (bỏ qua HoldDuration) ──────────
--- Kích hoạt ProximityPrompt tức thì:
--- 1. Lưu MaxActivationDistance gốc
--- 2. Đặt thành math.huge để đảm bảo kích hoạt được dù đứng xa
--- 3. Fire prompt
--- 4. Khôi phục về giá trị gốc
 local function firePrompt(prompt)
     local originalDist = prompt.MaxActivationDistance
     local originalHD = prompt.HoldDuration
@@ -84,7 +74,6 @@ local function firePrompt(prompt)
 end
 
 -- ── Helper: TP sát object rồi wait để server nhận vị trí ─────────────────────
--- Thay thế tpLookAt — không cần nhìn hướng, chỉ cần đứng gần là fire được
 local function tpTo(position)
     hrp.CFrame = CFrame.new(position)
     task.wait(0.2)
@@ -144,13 +133,10 @@ MainTab:AddSection({ Name = "Main" })
 -- │    3. TP → Plate   → fireprox 2 lần (đặt mì lên đĩa)                    │
 -- └─────────────────────────────────────────────────────────────────────────┘
 
--- Các object trong map
 local kitchen = workspace.House.Rooms.Kitchen
 local fridge  = kitchen.FridgeNoodles.Primary
 local stove   = kitchen.Stove.Primary
 
-
--- (index tính từ 1 theo thứ tự GetChildren)
 local function getPlate()
     return kitchen.DiningTable.Noodles:GetChildren()[6].Plate
 end
@@ -231,8 +217,7 @@ MainTab:AddButton({
 local generator = workspace.House.Generator.Button
 local function refillGenerator()
     local oldCFrame = hrp.CFrame
-
-    -- [1] Lấy gas can (dynamic object, lấy lại mỗi lần)
+    -- [1]. Equip
     local can     = workspace.House.GasCans:GetChildren()[1]
     local primary = can and can:FindFirstChild("Primary")
 
@@ -323,7 +308,7 @@ MainTab:AddToggle({
 -- │  Toggle: tự động fire bất kỳ ProximityPrompt nào ngay khi giữ.         │
 -- │  connection lưu ngoài hàm để Disconnect() được khi tắt toggle.         │
 -- └────────────────────────────────────────────────────────────────────────-┘
-local instantPPConnection = nil   -- <-- khai báo NGOÀI hàm
+local instantPPConnection = nil
 
 local function instantProximityPrompt(value)
     if value then
@@ -331,7 +316,7 @@ local function instantProximityPrompt(value)
             .PromptButtonHoldBegan:Connect(function(prompt)
                 firePrompt(prompt)
             end)
-    elseif instantPPConnection then   -- guard: chỉ disconnect nếu đang có
+    elseif instantPPConnection then
         instantPPConnection:Disconnect()
         instantPPConnection = nil
     end
@@ -398,13 +383,10 @@ local statsTab = Window:MakeTab({
     Disabled    = false,   -- Tab bị vô hiệu hóa (mờ, không click được)
     PremiumOnly = false,   -- Khoá tab cho Sirius Premium users
 })
--- Thay hàm createStatLabel thành:
 local function createStatLabel(text: string, valueObject: IntValue): any
     local para = statsTab:AddParagraph(text, "...")
 
     local function update(value: number)
-        -- Dùng task.defer để đợi Roblox render xong rồi mới set
-        -- tránh TextBounds đọc sai → frame phình đột biến
         task.defer(function()
             para:Set(tostring(value) .. " / 100")
         end)
@@ -439,7 +421,6 @@ local ViewTab = Window:MakeTab({
 ViewTab:AddSection({Name="ESP"})
 
 local function dadEsp(value)
-    -- Nếu tắt toggle thì xóa highlight luôn
     if not value then
         local dadModel = workspace.Game.dad:FindFirstChild("PossesedDad")
         if dadModel then
@@ -449,7 +430,6 @@ local function dadEsp(value)
         return
     end
 
-    -- Kiểm tra dad đã bị possesed chưa
     local dadModel = workspace.Game.dad:FindFirstChild("PossesedDad")
     if not dadModel then
         OrionLib:MakeNotification({
@@ -593,17 +573,18 @@ MiscTab:AddButton({
     end
 })
 
--- Nút huỷ toàn bộ UI Orion
+function destroyUI()
+    if instantPPConnection then
+        instantPPConnection:Disconnect()
+    end
+    dadEsp(false)
+    OrionLib:Destroy()
+    getgenv().GHUB_LOADED = false
+end
+
 MiscTab:AddButton({
     Name     = "Destroy UI",
     Visible  = true,
     Disabled = false,
-    Callback = function()
-        OrionLib:Destroy()  -- Dùng OrionLib:Destroy() thay vì Window:Destroy()
-                            -- để ngắt sạch tất cả connection
-        getgenv().GHUB_LOADED = false
-        if instantPPConnection then
-            instantPPConnection:Disconnect()
-        end
-    end,
+    Callback = destroyUI,
 })
