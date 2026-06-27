@@ -283,22 +283,21 @@ local function toggleGodMode(value)
     local fuel = workspace.House.Generator.Bar
     local function threshold_limit(variable: number)
         local threshold = 30
-        if variable < threshold then
+        if variable <= threshold then
             return true
         end
         return false
     end
     if value then
         OrionLib:MakeNotification({
-            Name = 'Information',
+            Name = 'Information!',
             Content = 'Auto eat, get water and refill generator when reaches 30 while sleeping',
             Image   = "rbxassetid://4483345998",
-            Timeout = 4
+            Timeout = 3
         })
-        task.wait(2)
         OrionLib:MakeNotification({
-            Name = 'Note',
-            Content = 'Sleeping is required for the option to function.',
+            Name = 'Note!',
+            Content = 'Sleeping is required(please do not un-sleep)',
             Image   = "rbxassetid://4483345998",
             Timeout = 3
         })
