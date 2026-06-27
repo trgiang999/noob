@@ -1,7 +1,7 @@
 -- ── Khởi động thư viện Orion ──────────────────────────────────────────────────
 local function githubGetRaw(user, repo, branch, path)
     local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s?t=%s")
-        :format(user, repo, branch, path, os.time())
+        :format(user, repo, branch, path, tostring(os.time()))
     local success, content = pcall(game.HttpGetAsync, game, rawUrl)
     if not success or content == "404: Not Found" then
         error("githubGet failed: Kiểm tra lại đường dẫn hoặc kết nối mạng!")
@@ -32,7 +32,6 @@ OrionLib:MakeNotification({
 })
 
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
-local EncodingService = game:GetService("EncodingService")
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
 local Players    = game:GetService("Players")
@@ -113,7 +112,7 @@ end
 --  Tạo cửa sổ UI chính
 -- ─────────────────────────────────────────────────────────────────────────────
 local Window = OrionLib:MakeWindow({
-    Name            = "G_Hub - Chapter 1(v1.1)",
+    Name            = "G_Hub - Chapter 1",
     SearchBar       = {
         Default          = "Search tabs...",
         ClearTextOnFocus = true,
@@ -145,7 +144,13 @@ local MainTab = Window:MakeTab({
 --  SECTION: Main.Main
 -- ═════════════════════════════════════════════════════════════════════════════
 MainTab:AddSection({ Name = "Main" })
-
+--Sub-Helper: Auto Do Something
+local function autoDoStuff(value: number, func, threshold)
+    threshold = threshold or 30
+    if value <= threshold then
+        func()
+    end
+end
 
 
 -- ┌─ Get Cooked Noodles ────────────────────────────────────────────────────┐
@@ -200,7 +205,7 @@ MainTab:AddButton({
 -- │    2. TP → Water Dispenser   → fireprox → đợi → equip "Glass of Water"  │
 -- │    3. Uống/Fire click/REmoteevent -> TP old position                    │
 -- └─────────────────────────────────────────────────────────────────────────┘
-local water_Dispenser = workspace.House.Spares:GetChildren()[7].Primary
+local waterDispenser = workspace.House.Spares:GetChildren()[7].Primary
 local function getDrinkingGlass()
     return workspace.House.Spares:GetChildren()[6].Primary
 end
@@ -215,8 +220,8 @@ local function getWater()
     equipTool("Drinking Glass")
 
     -- [2] Rót nước từ máy lọc + uống
-    tpTo(water_Dispenser.Position)
-    firePrompt(water_Dispenser.ProximityPrompt)
+    tpTo(waterDispenser.Position)
+    firePrompt(waterDispenser.ProximityPrompt)
     equipTool("Glass of Water")
 
     local waterGlass = getToolLocation("Glass of Water")
@@ -231,6 +236,7 @@ local function getWater()
     task.wait(0.1)
     hrp.CFrame = originalCFrame
 end
+
 
 MainTab:AddButton({
     Name     = "Drink Water",
@@ -277,17 +283,11 @@ MainTab:AddButton({
 })
 
 --GodMode
-local function toggleGodMode(value)
-    local thirst = player:FindFirstChild("Thirst")
-    local hunger = player:FindFirstChild("Hunger")
-    local fuel = workspace.House.Generator.Bar
-    local function threshold_limit(variable: IntValue)
-        local threshold = 30
-        if variable.Value <= threshold then
-            return true
-        end
-        return false
-    end
+function toggleGodMode(value)
+    local thirst: IntValue = player:FindFirstChild("Thirst")
+    local hunger: IntValue = player:FindFirstChild("Hunger")
+    local fuel: IntValue = workspace.House.Generator.Bar
+
     if value then
         OrionLib:MakeNotification({
             Name = 'Information!',
@@ -308,22 +308,21 @@ local function toggleGodMode(value)
             firePrompt(pp)
         end
         sleep()
+        local function autoDrink()
+            autoDoStuff(thirst.Value, getWater)
+        end
+        local function autoEat()
+            autoDoStuff(hunger.Value, getAndEatCookedNoodles)
+        end
+        local function autoRefillGenerator()
+            autoDoStuff(fuel.Value, refillGenerator)
+        end
+
+        OrionLib:AddConnect(thirst.Changed, autoDrink)
+        OrionLib:AddConnect(hunger.Changed, autoEat)
+        OrionLib:AddConnect(fuel.Changed, autoRefillGenerator)
     end
-    while value do
-        if threshold_limit(thirst) then
-            getWater()
-            task.wait(0.5)
-        end
-        if threshold_limit(hunger) then
-            getAndEatCookedNoodles()
-            task.wait(0.5)
-        end
-        if threshold_limit(fuel) then
-            refillGenerator()
-            task.wait(0.5)
-        end
-        task.wait(3)
-    end
+
 end
 
 MainTab:AddToggle({
@@ -575,9 +574,7 @@ local function loopfb(value)
             Lighting.GlobalShadows = false
             Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
         end
-        brightLoop = OrionLib:AddConnect(RunService.RenderStepped, function()
-            brightFunc()
-        end)
+        brightLoop = OrionLib:AddConnect(RunService.RenderStepped, brightFunc)
     else
         if brightLoop then
             brightLoop:Disconnect()
