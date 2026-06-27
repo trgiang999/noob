@@ -322,6 +322,7 @@ local function toggleGodMode(value)
             refillGenerator()
             task.wait(0.5)
         end
+        task.wait(3)
     end
 end
 
