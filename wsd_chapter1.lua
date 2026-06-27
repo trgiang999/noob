@@ -220,7 +220,13 @@ local function getWater()
     equipTool("Glass of Water")
 
     local waterGlass = getToolLocation("Glass of Water")
-    waterGlass.Use:FireServer()
+    -- Kiểm tra nil trước khi fire
+    local useEvent = waterGlass and waterGlass:FindFirstChild("Use")
+    if useEvent then
+        useEvent:FireServer()
+    else
+        warn("getWater: RemoteEvent 'Use' không tìm thấy trong Glass of Water")
+    end
     -- [3] Về vị trí cũ
     task.wait(0.1)
     hrp.CFrame = originalCFrame
@@ -272,8 +278,8 @@ MainTab:AddButton({
 
 --GodMode
 local function toggleGodMode(value)
-    local thirst = player.Thirst
-    local hunger = player.Hunger
+    local thirst = player:FindFirstChild("Thirst")
+    local hunger = player:FindFirstChild("Hunger")
     local fuel = workspace.House.Generator.Bar
     local function threshold_limit(variable: number)
         local threshold = 30
