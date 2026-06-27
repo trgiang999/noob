@@ -1,6 +1,17 @@
 if not game:IsLoaded() then game.Loaded:Wait() end
 if getgenv().GHUB_LOADED then 
     print("Already loaded the script!")
+    local function githubGetRaw1(user, repo, branch, path)
+        local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s?t=%s")
+            :format(user, repo, branch, path, os.time())
+        local success, content = pcall(game.HttpGetAsync, game, rawUrl)
+        if not success or content == "404: Not Found" then
+            error("githubGet failed: Kiểm tra lại đường dẫn hoặc kết nối mạng!")
+        end
+        return content
+    end
+
+    local OrionLib = loadstring(githubGetRaw1("trgiang999", "noob", "main", "OrionLibSource.lua"))()
     OrionLib:MakeNotification({
         Name    = "Warning!",                          
         Content = "The script is already running!",            
