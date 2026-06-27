@@ -219,8 +219,8 @@ local function getWater()
     firePrompt(water_Dispenser.ProximityPrompt)
     equipTool("Glass of Water")
 
-    local waterGlass = getToolLocation("Glass of Water")
-    waterGlass.Use:FireServer()
+    --local waterGlass = getToolLocation("Glass of Water")
+    --waterGlass.Use:FireServer()
     -- [3] Về vị trí cũ
     task.wait(0.1)
     hrp.CFrame = originalCFrame
