@@ -1,5 +1,14 @@
 if not game:IsLoaded() then game.Loaded:Wait() end
-if getgenv().GHUB_LOADED then return end
+if getgenv().GHUB_LOADED then 
+    print("Already loaded the script!")
+    OrionLib:MakeNotification({
+        Name    = "Warning!",                          
+        Content = "The script is already running!",            
+        Image   = "rbxassetid://4483345998",        
+        Time    = 3,      
+    })
+    return 
+end
 
 type ExecuteMap = {[number]: string}
 type ChapterMap = {[string]: number}
