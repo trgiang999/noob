@@ -123,7 +123,7 @@ local Window = OrionLib:MakeWindow({
     SaveConfig      = true,
     ConfigFolder    = "WSD_FreeHub",
     IntroEnabled    = true,
-    IntroText       = "G_Hub - Chapter 1(v1.1)",
+    IntroText       = "G_Hub - Chapter 1",
     IntroIcon       = "rbxassetid://7734091286",
     Icon            = "rbxassetid://7734091286",
     CloseCallback   = function()
@@ -219,8 +219,8 @@ local function getWater()
     firePrompt(water_Dispenser.ProximityPrompt)
     equipTool("Glass of Water")
 
-    --local waterGlass = getToolLocation("Glass of Water")
-    --waterGlass.Use:FireServer()
+    local waterGlass = getToolLocation("Glass of Water")
+    waterGlass.Use:FireServer()
     -- [3] Về vị trí cũ
     task.wait(0.1)
     hrp.CFrame = originalCFrame
@@ -303,6 +303,7 @@ local function toggleGodMode(value)
             firePrompt(pp)
         end
         sleep()
+    end
     while value do
         if threshold_limit(thirst) then
             getWater()
