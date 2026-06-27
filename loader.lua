@@ -48,6 +48,6 @@ local function githubGetRaw(direct_url)
     return content
 end
 
-url = LoaderTable[game.PlaceId]  --không có placeid/attempt placeid khác thì ko chạy luôn.
+url = LoaderTable[game.PlaceId]  --!= placeid = pass.
 raw = githubGetRaw(url)
 loadstring(raw)()
