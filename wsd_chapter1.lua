@@ -112,7 +112,7 @@ end
 --  Tạo cửa sổ UI chính
 -- ─────────────────────────────────────────────────────────────────────────────
 local Window = OrionLib:MakeWindow({
-    Name            = "G_Hub - Chapter 1",
+    Name            = "G_Hub - Chapter 1(v1.1)",
     SearchBar       = {
         Default          = "Search tabs...",
         ClearTextOnFocus = true,
