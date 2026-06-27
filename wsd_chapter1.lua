@@ -123,7 +123,7 @@ local Window = OrionLib:MakeWindow({
     SaveConfig      = true,
     ConfigFolder    = "WSD_FreeHub",
     IntroEnabled    = true,
-    IntroText       = "G_Hub - Chapter 1(v1.1)",
+    IntroText       = "G_Hub - Chapter 1",
     IntroIcon       = "rbxassetid://7734091286",
     Icon            = "rbxassetid://7734091286",
     CloseCallback   = function()
@@ -281,9 +281,9 @@ local function toggleGodMode(value)
     local thirst = player:FindFirstChild("Thirst")
     local hunger = player:FindFirstChild("Hunger")
     local fuel = workspace.House.Generator.Bar
-    local function threshold_limit(variable: number)
+    local function threshold_limit(variable: IntValue)
         local threshold = 30
-        if variable <= threshold then
+        if variable.Value <= threshold then
             return true
         end
         return false
