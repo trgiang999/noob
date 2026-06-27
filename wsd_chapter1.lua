@@ -665,11 +665,20 @@ MiscTab:AddButton({
     end
 })
 
-function destroyUI()
-    if instantPPConnection then
-        instantPPConnection:Disconnect()
+local function ManualDisconnect(connection: RBXScriptConnection)
+    if connection then
+        connection:Disconnect()
     end
+end
+
+function destroyUI()
+    --connections
+    ManualDisconnect(instantPPConnection)
+    ManualDisconnect(antiSeatConnection)
+    --toggles
     dadEsp(false)
+    loopfb(false)
+    --true deletion
     OrionLib:Destroy()
     getgenv().GHUB_LOADED = false
 end
