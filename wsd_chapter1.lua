@@ -32,6 +32,7 @@ OrionLib:MakeNotification({
 })
 
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
+local EncodingService = game:GetService("EncodingService")
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
 local Players    = game:GetService("Players")
@@ -61,16 +62,37 @@ local function equipTool(toolName, timeout)
     return true
 end
 
+local function getToolLocation(toolName, timeout)
+    timeout = timeout or 0.4
+    local backpack  = player:WaitForChild("Backpack")
+
+    local tool = backpack:FindFirstChild(toolName)
+               or char:FindFirstChild(toolName)
+
+    if not tool then
+        tool = backpack:WaitForChild(toolName, timeout)
+    end
+
+    if not tool then
+        warn(("equipTool: '%s' không tìm thấy sau %ds"):format(toolName, timeout))
+        return
+    end
+
+    return tool
+end
 
 -- ── Helper: Kích hoạt ProximityPrompt tức thì (bỏ qua HoldDuration) ──────────
-local function firePrompt(prompt)
+local function firePrompt(prompt: ProximityPrompt)
     local originalDist = prompt.MaxActivationDistance
     local originalHD = prompt.HoldDuration
+    local originalEnabled = prompt.Enabled
     prompt.MaxActivationDistance = math.huge
     prompt.HoldDuration = 0
+    prompt.Enabled = true
     fireproximityprompt(prompt)
     prompt.MaxActivationDistance = originalDist
     prompt.HoldDuration = originalHD
+    prompt.Enabled = originalEnabled
 end
 
 -- ── Helper: TP sát object rồi wait để server nhận vị trí ─────────────────────
@@ -101,7 +123,7 @@ local Window = OrionLib:MakeWindow({
     SaveConfig      = true,
     ConfigFolder    = "WSD_FreeHub",
     IntroEnabled    = true,
-    IntroText       = "G_Hub - Chapter 1",
+    IntroText       = "G_Hub - Chapter 1(v1.1)",
     IntroIcon       = "rbxassetid://7734091286",
     Icon            = "rbxassetid://7734091286",
     CloseCallback   = function()
@@ -192,18 +214,20 @@ local function getWater()
     firePrompt(glass.ProximityPrompt)
     equipTool("Drinking Glass")
 
-    -- [2] Rót nước từ máy lọc
+    -- [2] Rót nước từ máy lọc + uống
     tpTo(water_Dispenser.Position)
     firePrompt(water_Dispenser.ProximityPrompt)
     equipTool("Glass of Water")
 
+    local waterGlass = getToolLocation("Glass of Water")
+    waterGlass.Use:FireServer()
     -- [3] Về vị trí cũ
     task.wait(0.1)
     hrp.CFrame = originalCFrame
 end
 
 MainTab:AddButton({
-    Name     = "Get Water",
+    Name     = "Drink Water",
     Visible  = true,
     Disabled = false,
     Callback = getWater,
@@ -246,6 +270,67 @@ MainTab:AddButton({
     Callback = refillGenerator,
 })
 
+--GodMode
+local function toggleGodMode(value)
+    local thirst = player.Thirst
+    local hunger = player.Hunger
+    local fuel = workspace.House.Generator.Bar
+    local function threshold_limit(variable: number)
+        local threshold = 30
+        if variable < threshold then
+            return true
+        end
+        return false
+    end
+    if value then
+        OrionLib:MakeNotification({
+            Name = 'Information',
+            Content = 'Auto eat, get water and refill generator when reaches 30 while sleeping',
+            Image   = "rbxassetid://4483345998",
+            Timeout = 4
+        })
+        task.wait(2)
+        OrionLib:MakeNotification({
+            Name = 'Note',
+            Content = 'Sleeping is required for the option to function.',
+            Image   = "rbxassetid://4483345998",
+            Timeout = 3
+        })
+        local function sleep()
+            local pp = workspace.House.Rooms.Bedroom.Beds.Bed.Primary.ProximityPrompt
+            tpTo(Vector3.new(-118, 20, 38))
+            task.wait(0.25)
+            firePrompt(pp)
+        end
+        sleep()
+    while value do
+        if threshold_limit(thirst) then
+            getWater()
+            task.wait(0.5)
+        end
+        if threshold_limit(hunger) then
+            getAndEatCookedNoodles()
+            task.wait(0.5)
+        end
+        if threshold_limit(fuel) then
+            refillGenerator()
+            task.wait(0.5)
+        end
+    end
+end
+
+MainTab:AddToggle({
+    Name     = "God mode",
+    Default  = false,
+    Type     = "CheckBox",
+    Flag     = "godMode",
+    Save     = true,
+    Visible  = true,
+    Disabled = false,
+    Callback = function(value)
+        toggleGodMode(value)
+    end,
+})
 MainTab:AddSection({Name = "Misc"})
 -- ═════════════════════════════════════════════════════════════════════════════
 -- SECTION: Main.Misc
