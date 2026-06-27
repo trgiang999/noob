@@ -1,19 +1,19 @@
 -- ── Chờ game load xong ────────────────────────────────────────────────────
 if not game:IsLoaded() then game.Loaded:Wait() end
-
+local function githubGetRaw(user, repo, branch, path)
+    local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s?t=%s")
+        :format(user, repo, branch, path, os.time())
+    local success, content = pcall(game.HttpGetAsync, game, rawUrl)
+    if not success or content == "404: Not Found" then
+        error("githubGet failed: Kiểm tra lại đường dẫn hoặc kết nối mạng!")
+    end
+    return content
+end
 -- ── Kiểm tra script đã chạy chưa ─────────────────────────────────────────
 if getgenv().GHUB_LOADED then
     print("Already loaded the script!")
     -- Load OrionLib riêng để show notification
-    local function githubGetRaw(user, repo, branch, path)
-        local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s?t=%s")
-            :format(user, repo, branch, path, os.time())
-        local success, content = pcall(game.HttpGetAsync, game, rawUrl)
-        if not success or content == "404: Not Found" then
-            error("githubGet failed: Kiểm tra lại đường dẫn hoặc kết nối mạng!")
-        end
-        return content
-    end
+
     local OrionLib = loadstring(githubGetRaw("trgiang999", "noob", "main", "OrionLibSource.lua"))()
     OrionLib:MakeNotification({
         Name    = "Warning!",
@@ -41,27 +41,17 @@ local ChapterTable: ChapterMap = {
 
 -- ── Bảng PlaceId → URL script tương ứng ──────────────────────────────────
 type ExecuteMap = {[number]: string}
-local BASE = "https://raw.githubusercontent.com/trgiang999/noob/refs/heads/main/"
 local LoaderTable: ExecuteMap = {
-    [ChapterTable["chapter1"]]   = BASE .. "wsd_chapter1.lua",
-    [ChapterTable["chapter2"]]   = BASE .. "wsd_chapter2.lua",
-    [ChapterTable["chapter3.1"]] = BASE .. "wsd_chapter3.1.lua",
-    [ChapterTable["chapter3.2"]] = "",
-    [ChapterTable["chapter3.3"]] = "",
-    [ChapterTable["chapter4.1"]] = "",
-    [ChapterTable["chapter4.2"]] = "",
-    [ChapterTable["chapter1_b2"]] = "",
+    [ChapterTable["chapter1"]]      = "wsd_chapter1.lua",
+    [ChapterTable["chapter2"]]      = "wsd_chapter2.lua",
+    [ChapterTable["chapter3.1"]]    = "wsd_chapter3.1.lua",
+    [ChapterTable["chapter3.2"]]    = "",
+    [ChapterTable["chapter3.3"]]    = "",
+    [ChapterTable["chapter4.1"]]    = "",
+    [ChapterTable["chapter4.2"]]    = "",
+    [ChapterTable["chapter1_b2"]]   = "",
 }
 
--- ── Fetch raw content từ URL (cache-bust bằng timestamp) ─────────────────
-local function githubGetRaw(directUrl: string): string
-    local url = directUrl .. "?t=" .. tostring(os.time())
-    local success, content = pcall(game.HttpGetAsync, game, url)
-    if not success or content == "404: Not Found" then
-        return ""
-    end
-    return content
-end
 
 -- ── Tìm URL cho PlaceId hiện tại ─────────────────────────────────────────
 local url = LoaderTable[game.PlaceId]
@@ -72,7 +62,7 @@ if not url or url == "" then
 end
 
 -- ── Fetch và thực thi script ──────────────────────────────────────────────
-local raw = githubGetRaw(url)
+local raw = githubGetRaw('trgiang999', 'noob', 'main', url)
 
 if raw == "" then
     print("Failed to fetch script!")
