@@ -122,7 +122,7 @@ local glassShelf = workspace.House.Spares:FindFirstChild("Shelf with Drinks").Pr
 local waterDispenser = house.Spares:FindFirstChild("WaterDispenser").Primary
 
 local RETURN_POSITION = Vector3.new(-113, 5, 61)
-local STORE_PROMPT = workspace.Game.Baggage.Store.ProximityPrompt
+local STORE_PROMPT = workspace.Game.Baggage.Store
 
 local gasCanSuccess = false
 local isRunning = false
