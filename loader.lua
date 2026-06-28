@@ -1,14 +1,39 @@
 -- ── Chờ game load xong ────────────────────────────────────────────────────
 if not game:IsLoaded() then game.Loaded:Wait() end
+local request = request or http_request or (syn and syn.request)
+
 local function githubGetRaw(user, repo, branch, path)
-    local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s?t=%s")
-        :format(user, repo, branch, path, os.time())
-    local success, content = pcall(game.HttpGetAsync, game, rawUrl)
+    local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s"):format(user, repo, branch, path)
+    
+    -- Nếu Executor hỗ trợ hàm request cao cấp
+    if request then
+        local success, response = pcall(request, {
+            Url = rawUrl,
+            Method = "GET",
+            Headers = {
+                ["Cache-Control"] = "no-cache",
+                ["Pragma"] = "no-cache"
+            }
+        })
+        
+        if success and response.Success then
+            if response.Body == "404: Not Found" then
+                error("Lỗi 404: Không tìm thấy file trên GitHub!")
+            end
+            return response.Body
+        end
+    end
+    
+    -- Fallback về HttpGet nếu Executor không có hàm request (nhưng đổi sang dùng game:HttpGet cho ổn định)
+    -- Thêm math.random để phụ trợ bypass cache của riêng Executor
+    local fallbackUrl = rawUrl .. "?v=" .. math.random(10000, 99999)
+    local success, content = pcall(game.HttpGet, game, fallbackUrl)
     if not success or content == "404: Not Found" then
         error("githubGet failed: Kiểm tra lại đường dẫn hoặc kết nối mạng!")
     end
     return content
 end
+
 -- ── Kiểm tra script đã chạy chưa ─────────────────────────────────────────
 if getgenv().GHUB_LOADED then
     print("Already loaded the script!")
