@@ -1,249 +1,97 @@
--- ── Khởi động thư viện Orion ──────────────────────────────────────────────────
-local function githubGetRaw(user, repo, branch, path)
-    local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s?t=%s")
-        :format(user, repo, branch, path, os.time())
+-- ── Chờ game load xong ────────────────────────────────────────────────────
+if not game:IsLoaded() then game.Loaded:Wait() end
+local request = request or http_request or (syn and syn.request)
 
-    local success, content = pcall(game.HttpGetAsync, game, rawUrl)
+local function githubGetRaw(user, repo, branch, path)
+    local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s"):format(user, repo, branch, path)
     
+    -- Nếu Executor hỗ trợ hàm request cao cấp
+    if request then
+        local success, response = pcall(request, {
+            Url = rawUrl,
+            Method = "GET",
+            Headers = {
+                ["Cache-Control"] = "no-cache",
+                ["Pragma"] = "no-cache"
+            }
+        })
+        
+        if success and response.Success then
+            if response.Body == "404: Not Found" then
+                error("Lỗi 404: Không tìm thấy file trên GitHub!")
+            end
+            return response.Body
+        end
+    end
+    
+    -- Fallback về HttpGet nếu Executor không có hàm request (nhưng đổi sang dùng game:HttpGet cho ổn định)
+    -- Thêm math.random để phụ trợ bypass cache của riêng Executor
+    local fallbackUrl = rawUrl .. "?v=" .. math.random(10000, 99999)
+    local success, content = pcall(game.HttpGet, game, fallbackUrl)
     if not success or content == "404: Not Found" then
         error("githubGet failed: Kiểm tra lại đường dẫn hoặc kết nối mạng!")
     end
-
     return content
 end
 
-local OrionLib = loadstring(githubGetRaw("trgiang999", "noob", "main", "OrionLibSource.lua"))()
+-- ── Kiểm tra script đã chạy chưa ─────────────────────────────────────────
+if getgenv().GHUB_LOADED then
+    print("Already loaded the script!")
+    -- Load OrionLib riêng để show notification
 
-if getgenv().GHUB_LOADED then 
+    local OrionLib = loadstring(githubGetRaw("trgiang999", "noob", "main", "OrionLibSource.lua"))()
     OrionLib:MakeNotification({
-        Name    = "Warning!",                          
-        Content = "The script is already running!",            
-        Image   = "rbxassetid://4483345998",        
-        Time    = 3,      
+        Name    = "Warning!",
+        Content = "The script is already running!",
+        Image   = "rbxassetid://4483345998",
+        Time    = 3,
     })
     return
 end
 
-getgenv().GHUB_LOADED = true
+-- ── Bảng chapter ID → PlaceId ─────────────────────────────────────────────
+type ChapterMap = {[string]: number}
+local ChapterTable: ChapterMap = {
+    -- Book 1
+    ["chapter1"]   = 14787381917,
+    ["chapter2"]   = 15322497988,
+    ["chapter3.1"] = 16375066410,
+    ["chapter3.2"] = 16485242214,
+    ["chapter3.3"] = 16554037885,
+    ["chapter4.1"] = 17619037026,
+    ["chapter4.2"] = 17680488855,
+    -- Book 2
+    ["chapter1_b2"] = 71718624482170,
+}
 
-OrionLib:MakeNotification({
-    Name    = "Success",
-    Content = "Script loaded successfully!",
-    Time    = 3
-})
+-- ── Bảng PlaceId → URL script tương ứng ──────────────────────────────────
+type ExecuteMap = {[number]: string}
+local LoaderTable: ExecuteMap = {
+    [ChapterTable["chapter1"]]      = "wsd_chapter1.lua",
+    [ChapterTable["chapter2"]]      = "wsd_chapter2.lua",
+    [ChapterTable["chapter3.1"]]    = "wsd_chapter3.1.lua",
+    [ChapterTable["chapter3.2"]]    = "",
+    [ChapterTable["chapter3.3"]]    = "",
+    [ChapterTable["chapter4.1"]]    = "",
+    [ChapterTable["chapter4.2"]]    = "",
+    [ChapterTable["chapter1_b2"]]   = "",
+}
 
 
--- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
-local Players    = game:GetService("Players")
-local player     = Players.LocalPlayer
-local char       = player.Character or player.CharacterAdded:Wait()
-local hrp        = char:WaitForChild("HumanoidRootPart")
+-- ── Tìm URL cho PlaceId hiện tại ─────────────────────────────────────────
+local url = LoaderTable[game.PlaceId]
 
--- ── Helper: Equip tool từ Backpack theo tên ───────────────────────────────────
-local function equipTool(toolName, timeout)
-    timeout = timeout or 0.4
-    local humanoid = char:WaitForChild("Humanoid")
-    local backpack  = player:WaitForChild("Backpack")
-
-    local tool = backpack:FindFirstChild(toolName)
-               or char:FindFirstChild(toolName)
-
-    if not tool then
-        tool = backpack:WaitForChild(toolName, timeout)
-    end
-
-    if not tool then
-        warn(("equipTool: '%s' không tìm thấy sau %ds"):format(toolName, timeout))
-        return false
-    end
-
-    humanoid:EquipTool(tool)
-    return true
+if not url or url == "" then
+    print(("UNSUPPORTED PlaceId: %d"):format(game.PlaceId))
+    return
 end
 
+-- ── Fetch và thực thi script ──────────────────────────────────────────────
+local raw = githubGetRaw('trgiang999', 'noob', 'main', url)
 
--- ── Helper: Kích hoạt ProximityPrompt tức thì ──────────
-local function firePrompt(prompt: ProximityPrompt)
-    local originalDist = prompt.MaxActivationDistance
-    local originalHD = prompt.HoldDuration
-    local originalEnabled = prompt.Enabled
-    prompt.MaxActivationDistance = math.huge
-    prompt.HoldDuration = 0
-    prompt.Enabled = true
-    fireproximityprompt(prompt)
-    prompt.MaxActivationDistance = originalDist
-    prompt.HoldDuration = originalHD
-    prompt.Enabled = originalEnabled
+if raw == "" then
+    print("Failed to fetch script!")
+    return
 end
 
--- ── Helper: TP sát object rồi wait để server nhận vị trí ─────────────────────
-local function tpTo(position)
-    hrp.CFrame = CFrame.new(position)
-    task.wait(0.2)
-end
-
--- Tạo cửa sổ
-local WindowName = "G_Hub - Chapter 3"
-local Window = OrionLib:MakeWindow({
-    Name            = WindowName,
-    SearchBar       = {
-        Default          = "Search tabs...",
-        ClearTextOnFocus = true,
-    },
-    IntroToggleIcon = "rbxassetid://7734091286",
-    HidePremium     = false,
-    SaveConfig      = true,
-    ConfigFolder    = "WSD_FreeHub",
-    IntroEnabled    = true,
-    IntroText       = WindowName,
-    IntroIcon       = "rbxassetid://7734091286",
-    Icon            = "rbxassetid://7734091286",
-    CloseCallback   = function()
-        print("UI closed")
-    end,
-})
-
--- ═════════════════════════════════════════════════════════════════════════════
---  TAB: MAIN
--- ═════════════════════════════════════════════════════════════════════════════
-local MainTab = Window:MakeTab({
-    Name = "Main",
-    Icon = "rbxassetid://7733960981",
-    Visible = true,
-    Disabled = false
-})
-
---Location
-local house = workspace.House
-local kitchen = house.Rooms.Kitchen
-local fridge  = kitchen.FridgeNoodles.Primary
-local stove   = kitchen.Stove.Primary
-local glassShelf = workspace.House.Spares:FindFirstChild("Shelf with Drinks").Primary
-local waterDispenser = house.Spares:FindFirstChild("WaterDispenser").Primary
-
-local RETURN_POSITION = Vector3.new(-113, 5, 61)
-local STORE_PROMPT = workspace.Game.Baggage.Store
-
-local gasCanSuccess = false
-local isRunning = false
-local function getGasCan()
-    --[1] Equip
-    local can     = workspace.House.GasCans:GetChildren()[1]
-    local primary = can and can:FindFirstChild("Primary")
-
-    if not primary then
-        gasCanSuccess = true
-        OrionLib:MakeNotification({ Name = "Success!", Content = "Collected all gas cans", Time = 5})
-        return
-    end
-
-    tpTo(primary.Position)
-    firePrompt(primary:FindFirstChildOfClass("ProximityPrompt"))
-    equipTool("gas can")
-
-    -- [2] Bỏ vào xe
-    tpTo(RETURN_POSITION)
-    firePrompt(STORE_PROMPT)
-end
-
-local function getCookedNoodles()
-    -- [1] Lấy mì sống từ tủ lạnh
-    tpTo(fridge.Position)
-    firePrompt(fridge.ProximityPrompt)
-    equipTool("Raw Noodle")
-
-    -- [2] Nấu mì trên bếp
-    tpTo(stove.Position)
-    firePrompt(stove.ProximityPrompt)
-    equipTool("Cooked Noodle")
-
-    -- [3] Bỏ vào xe
-    tpTo(RETURN_POSITION)
-    firePrompt(STORE_PROMPT)
-end
-
-local function getWaterGlasses()
-    tpTo(glassShelf.Position)
-    firePrompt(glassShelf.ProximityPrompt)
-    equipTool("Drinking Glass")
-
-    -- [2] Rót nước từ máy lọc
-    tpTo(waterDispenser.Position)
-    firePrompt(waterDispenser.ProximityPrompt)
-    equipTool("Glass of Water")
-
-    -- [3] Bỏ vào xe
-    tpTo(RETURN_POSITION)
-    firePrompt(STORE_PROMPT)
-end
-
-local function getAllStuff(value)
-    isRunning = value
-    if value then
-        local function getAll()
-            OrionLib:MakeNotification({
-                Name = "Information",
-                Content = "Auto Collect Started",
-                Timeout = 3,
-                Image   = "rbxassetid://4483345998",
-            })
-            
-            while isRunning do
-                if not gasCanSuccess then
-                    getGasCan()
-                end
-                
-                -- Kiểm tra lại trạng thái trước mỗi hành động đề phòng người dùng vừa bấm Tắt
-                if not isRunning then break end 
-                getCookedNoodles()
-                
-                if not isRunning then break end
-                task.wait(0.1)
-                getWaterGlasses()
-            end
-        end
-        task.spawn(getAll)
-    end
-end
-
-MainTab:AddToggle({
-    Name     = "Auto get all",
-    Default  = false,          -- Giá trị mặc định
-    Type     = "Switch",       -- "Switch" hoặc "CheckBox"
-    Flag     = "getAllStuff",    -- ID dùng với OrionLib.Flags
-    Save     = true,           -- Lưu vào config
-    Visible  = true,
-    Disabled = false,
-    Callback = getAllStuff,
-})
-
--- ═════════════════════════════════════════════════════════════════════════════
---  TAB: Misc
--- ═════════════════════════════════════════════════════════════════════════════
-local MiscTab = Window:MakeTab({
-    Name     = "Misc",
-    Icon     = "rbxassetid://4483345998",
-    Visible  = true,
-    Disabled = false,
-})
-
-
-MiscTab:AddButton({
-    Name = "Infinite Yield",
-    Visible = true,
-    Disabled = false,
-    Callback = function()
-        loadstring(game:HttpGet(('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'),true))()
-    end
-})
-
-MiscTab:AddButton({
-    Name     = "Destroy UI",
-    Visible  = true,
-    Disabled = false,
-    Callback = function()
-        OrionLib:Destroy()
-        getgenv().GHUB_LOADED = false
-    end,
-})
-
+loadstring(raw)()
