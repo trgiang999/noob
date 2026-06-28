@@ -35,6 +35,7 @@ OrionLib:MakeNotification({
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
 local Players    = game:GetService("Players")
+local Workspace  = game:GetService("Workspace")
 local player     = Players.LocalPlayer
 local char       = player.Character or player.CharacterAdded:Wait()
 local hrp        = char:WaitForChild("HumanoidRootPart")
@@ -122,7 +123,7 @@ local Window = OrionLib:MakeWindow({
     SaveConfig      = true,
     ConfigFolder    = "WSD_FreeHub",
     IntroEnabled    = true,
-    IntroText       = "Noob's Production",
+    IntroText       = "G_Hub - Chapter 1",
     IntroIcon       = "rbxassetid://7734091286",
     Icon            = "rbxassetid://7734091286",
     CloseCallback   = function()
@@ -160,7 +161,7 @@ end
 -- │    3. TP → Plate   → fireprox 2 lần (đặt mì lên đĩa)                    │
 -- └─────────────────────────────────────────────────────────────────────────┘
 
-local kitchen = workspace.House.Rooms.Kitchen
+local kitchen = Workspace.House.Rooms.Kitchen
 local fridge  = kitchen.FridgeNoodles.Primary
 local stove   = kitchen.Stove.Primary
 
@@ -168,7 +169,13 @@ local function getPlate()
     return kitchen.DiningTable.Noodles:GetChildren()[6].Plate
 end
 
-local function getAndEatCookedNoodles()
+local function eatCookedNoodles()
+    OrionLib:MakeNotification({
+        Name    = "Note!",                          -- Tiêu đề thông báo
+        Content = "Using anti sit is recommended!",            -- Nội dung thông báo
+        Image   = "rbxassetid://4483345998",        -- Icon bên trái tiêu đề
+        Time    = 3,                                -- Thời gian hiển thị (giây)
+    })
     local originalCFrame = hrp.CFrame
 
     -- [1] Lấy mì sống từ tủ lạnh
@@ -197,7 +204,7 @@ MainTab:AddButton({
     Name     = "Eat Cooked Noodle",
     Visible  = true,
     Disabled = false,
-    Callback = getAndEatCookedNoodles,
+    Callback = eatCookedNoodles,
 })
 -- ┌─ Drink Water Glasses────────────────────────────────────────────────────┐
 -- │  Quy trình tự động uống nước:                                           │
@@ -205,16 +212,13 @@ MainTab:AddButton({
 -- │    2. TP → Water Dispenser   → fireprox → đợi → equip "Glass of Water"  │
 -- │    3. Uống/Fire click/REmoteevent -> TP old position                    │
 -- └─────────────────────────────────────────────────────────────────────────┘
-local waterDispenser = workspace.House.Spares:GetChildren()[7].Primary
-local function getDrinkingGlass()
-    return workspace.House.Spares:GetChildren()[6].Primary
-end
+local waterDispenser = Workspace.House.Spares:GetChildren()[7].Primary
 
-local function getWater()
+local function drinkWater()
     local originalCFrame = hrp.CFrame
 
     -- [1] Lấy cốc từ kệ
-    local glass = getDrinkingGlass()
+    local glass = Workspace.House.Spares:GetChildren()[6].Primary
     tpTo(glass.Position)
     firePrompt(glass.ProximityPrompt)
     equipTool("Drinking Glass")
@@ -242,7 +246,7 @@ MainTab:AddButton({
     Name     = "Drink Water",
     Visible  = true,
     Disabled = false,
-    Callback = getWater,
+    Callback = drinkWater,
 })
 -- ┌─ Refill Generator   ────────────────────────────────────────────────────┐
 -- │  Quy trình tự động đổ xăng:                                             │
@@ -250,11 +254,11 @@ MainTab:AddButton({
 -- │    2. TP → Generator -> fireprox -> Tp old pos                          |
 -- │                                                                         │
 -- └─────────────────────────────────────────────────────────────────────────┘
-local generator = workspace.House.Generator.Button
+local generator = Workspace.House.Generator.Button
 local function refillGenerator()
     local oldCFrame = hrp.CFrame
     -- [1]. Equip
-    local can     = workspace.House.GasCans:GetChildren()[1]
+    local can     = Workspace.House.GasCans:GetChildren()[1]
     local primary = can and can:FindFirstChild("Primary")
 
     if not primary then
@@ -282,61 +286,63 @@ MainTab:AddButton({
     Callback = refillGenerator,
 })
 
---GodMode
-function toggleGodMode(value)
-    local thirst: IntValue = player:FindFirstChild("Thirst")
-    local hunger: IntValue = player:FindFirstChild("Hunger")
-    local fuel: IntValue = workspace.House.Generator.Bar
 
-    if value then
-        OrionLib:MakeNotification({
-            Name = 'Information!',
-            Content = 'Auto eat, get water and refill generator when reaches 30 while sleeping',
-            Image   = "rbxassetid://4483345998",
-            Timeout = 3
-        })
-        OrionLib:MakeNotification({
-            Name = 'Note!',
-            Content = 'Sleeping is required(please do not un-sleep)',
-            Image   = "rbxassetid://4483345998",
-            Timeout = 3
-        })
-        local function sleep()
-            local pp = workspace.House.Rooms.Bedroom.Beds.Bed.Primary.ProximityPrompt
-            tpTo(Vector3.new(-118, 20, 38))
-            task.wait(0.25)
-            firePrompt(pp)
-        end
-        sleep()
-        local function autoDrink()
-            autoDoStuff(thirst.Value, getWater)
-        end
-        local function autoEat()
-            autoDoStuff(hunger.Value, getAndEatCookedNoodles)
-        end
-        local function autoRefillGenerator()
-            autoDoStuff(fuel.Value, refillGenerator)
-        end
+--GodMode/Kill dad
+local DadFolder = workspace:WaitForChild("Game"):WaitForChild("dad")
+local isListening: boolean = false
 
-        OrionLib:AddConnect(thirst.Changed, autoDrink)
-        OrionLib:AddConnect(hunger.Changed, autoEat)
-        OrionLib:AddConnect(fuel.Changed, autoRefillGenerator)
-    end
+local function autoKill(dad)
+	local humanoid = dad:WaitForChild("Humanoid", 5)
+	if not humanoid then return end
 
+	local function kill() humanoid.Health = 0 end
+
+	local function checkChaseDoor(child)
+		if child.Name == "ChaseDoor" and child:IsA("BoolValue") then
+			if child.Value then kill() end
+			child.Changed:Connect(function(val) if val then kill() end end)
+		end
+	end
+
+	local chaseDoor = dad:FindFirstChild("ChaseDoor")
+	if chaseDoor then checkChaseDoor(chaseDoor) else dad.ChildAdded:Connect(checkChaseDoor) end
+
+	task.spawn(function()
+		while dad and dad.Parent and humanoid.Health > 0 do
+			kill()
+			task.wait(0.5)
+		end
+	end)
 end
 
-MainTab:AddToggle({
-    Name     = "God mode",
-    Default  = false,
-    Type     = "CheckBox",
-    Flag     = "godMode",
-    Save     = true,
+function killDad()
+    if isListening then 
+        OrionLib:MakeNotification({
+            Name    = "Warning!",                          -- Tiêu đề thông báo
+            Content = "You've already pressed God-mode! Please wait until dad is possessed.",            -- Nội dung thông báo
+            Image   = "rbxassetid://4483345998",        -- Icon bên trái tiêu đề
+            Time    = 3,                                -- Thời gian hiển thị (giây)
+        })
+        return
+    end
+	local possessedDad = DadFolder:FindFirstChild("PossesedDad")
+	if possessedDad then 
+		autoKill(possessedDad) 
+	else
+		DadFolder.ChildAdded:Connect(function(child)
+			if child.Name == "PossesedDad" then autoKill(child) end
+		end)
+	end
+end
+
+MainTab:AddButton({
+    Name     = "God mode(Kill dad)",
     Visible  = true,
     Disabled = false,
-    Callback = function(value)
-        toggleGodMode(value)
-    end,
+    Callback = killDad,
 })
+
+
 MainTab:AddSection({Name = "Misc"})
 -- ═════════════════════════════════════════════════════════════════════════════
 -- SECTION: Main.Misc
@@ -395,6 +401,54 @@ MainTab:AddToggle({
     Callback = toggleAntiSit,
 })
 
+local ppTable = {}
+local ppConnection: RBXScriptConnection = nil
+
+local function enablePrompts(value: boolean)
+    local function processPrompt(obj: Instance)
+        if obj:IsA("ProximityPrompt") then
+            if ppTable[obj] == nil then
+                ppTable[obj] = obj.Enabled
+            end
+            obj.Enabled = true
+        end
+    end
+
+    if value then
+        for _, obj in ipairs(Workspace:GetDescendants()) do
+            processPrompt(obj)
+        end
+        
+        if not ppConnection then
+            ppConnection = Workspace.DescendantAdded:Connect(processPrompt)
+        end
+    else
+        if ppConnection then
+            ppConnection:Disconnect()
+            ppConnection = nil
+        end
+        
+        for obj, originalState in pairs(ppTable) do
+            if obj and obj.Parent then
+                obj.Enabled = originalState
+            end
+        end
+        
+        table.clear(ppTable)
+    end
+end
+
+MainTab:AddToggle({
+    Name     = "Enable locked interactions",
+    Default  = false,          -- Giá trị mặc định
+    Type     = "CheckBox",       -- "Switch" hoặc "CheckBox"
+    Flag     = "enablePrompts",    -- ID dùng với OrionLib.Flags
+    Save     = true,           -- Lưu vào config
+    Visible  = true,
+    Disabled = false,
+    Callback = enablePrompts,
+})
+
 -- ┌─ Instant ProximityPrompt ───────────────────────────────────────────────┐
 -- │  Toggle: tự động fire bất kỳ ProximityPrompt nào ngay khi giữ.         │
 -- │  connection lưu ngoài hàm để Disconnect() được khi tắt toggle.         │
@@ -421,9 +475,7 @@ MainTab:AddToggle({
     Save     = true,           -- Lưu vào config
     Visible  = true,
     Disabled = false,
-    Callback = function(value)
-        instantProximityPrompt(value)
-    end,
+    Callback = instantProximityPrompt,
 })
 -- ═════════════════════════════════════════════════════════════════════════════
 -- TAB: TELEPORT
@@ -490,7 +542,7 @@ local function createStatLabel(text: string, valueObject: IntValue): any
     return para
 end
 
-createStatLabel("Fuel", workspace.House.Generator.Bar)
+createStatLabel("Fuel", Workspace.House.Generator.Bar)
 createStatLabel("Thirst", player.Thirst)
 createStatLabel("Hunger", player.Hunger)
 createStatLabel("Energy", player.Energy)
@@ -513,7 +565,7 @@ ViewTab:AddSection({Name="ESP"})
 
 local function dadEsp(value)
     if not value then
-        local dadModel = workspace.Game.dad:FindFirstChild("PossesedDad")
+        local dadModel = Workspace.Game.dad:FindFirstChild("PossesedDad")
         if dadModel then
             local h = dadModel:FindFirstChild("DadHighlight")
             if h then h:Destroy() end
@@ -521,7 +573,7 @@ local function dadEsp(value)
         return
     end
 
-    local dadModel = workspace.Game.dad:FindFirstChild("PossesedDad")
+    local dadModel = Workspace.Game.dad:FindFirstChild("PossesedDad")
     if not dadModel then
         OrionLib:MakeNotification({
             Name    = "Error!",
@@ -553,9 +605,7 @@ ViewTab:AddToggle({
     Save     = true,           -- Lưu vào config
     Visible  = true,
     Disabled = false,
-    Callback = function(value)
-        dadEsp(value)
-    end,
+    Callback = dadEsp,
 })
 -- ═════════════════════════════════════════════════════════════════════════════
 -- SECTION: CAMERA
@@ -663,8 +713,10 @@ MiscTab:AddButton({
 })
 
 local function ManualDisconnect(connection: RBXScriptConnection)
-    if connection then
-        connection:Disconnect()
+    if connection and typeof(connection) == 'RBXScriptConnection' then
+        if connection.Connected then
+            connection:Disconnect()
+        end
     end
 end
 
@@ -672,6 +724,7 @@ function destroyUI()
     --connections
     ManualDisconnect(instantPPConnection)
     ManualDisconnect(antiSeatConnection)
+    ManualDisconnect(ppConnection)
     --toggles
     dadEsp(false)
     loopfb(false)
