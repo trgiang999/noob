@@ -126,6 +126,12 @@ local STORE_PROMPT = workspace.Game.Baggage.Store
 
 local gasCanSuccess = false
 local isRunning = false
+--Position
+local FRIDGE_POSITION = Vector3.new(-122, 5, 16)
+local STOVE_POSITION = Vector3.new(-111, 5, 17)
+local SHELF_POSITION = Vector3.new(-126, 5, 25)
+local DISPENSER_POSITION = Vector3.new(-125, 5, 30)
+
 local function getGasCan()
     --[1] Equip
     local can     = workspace.House.GasCans:GetChildren()[1]
@@ -137,7 +143,7 @@ local function getGasCan()
         return
     end
 
-    tpTo(primary.Position)
+    tpTo(primary.Position + Vector3.new(0, 3, 0))
     firePrompt(primary:FindFirstChildOfClass("ProximityPrompt"))
     equipTool("gas can")
 
@@ -148,12 +154,12 @@ end
 
 local function getCookedNoodles()
     -- [1] Lấy mì sống từ tủ lạnh
-    tpTo(fridge.Position)
+    tpTo(FRIDGE_POSITION)
     firePrompt(fridge.ProximityPrompt)
     equipTool("Raw Noodle")
 
     -- [2] Nấu mì trên bếp
-    tpTo(stove.Position)
+    tpTo(STOVE_POSITION)
     firePrompt(stove.ProximityPrompt)
     equipTool("Cooked Noodle")
 
@@ -163,12 +169,12 @@ local function getCookedNoodles()
 end
 
 local function getWaterGlasses()
-    tpTo(glassShelf.Position)
+    tpTo(SHELF_POSITION)
     firePrompt(glassShelf.ProximityPrompt)
     equipTool("Drinking Glass")
 
     -- [2] Rót nước từ máy lọc
-    tpTo(waterDispenser.Position)
+    tpTo(DISPENSER_POSITION)
     firePrompt(waterDispenser.ProximityPrompt)
     equipTool("Glass of Water")
 
