@@ -34,8 +34,6 @@ OrionLib:MakeNotification({
 
 
 -- ── Các biến toàn cục thường dùng ────────────────────────────────────────────
-local Lighting = game:GetService("Lighting")
-local RunService = game:GetService("RunService")
 local Players    = game:GetService("Players")
 local player     = Players.LocalPlayer
 local char       = player.Character or player.CharacterAdded:Wait()
@@ -64,15 +62,18 @@ local function equipTool(toolName, timeout)
 end
 
 
--- ── Helper: Kích hoạt ProximityPrompt tức thì (bỏ qua HoldDuration) ──────────
-local function firePrompt(prompt)
+-- ── Helper: Kích hoạt ProximityPrompt tức thì ──────────
+local function firePrompt(prompt: ProximityPrompt)
     local originalDist = prompt.MaxActivationDistance
     local originalHD = prompt.HoldDuration
+    local originalEnabled = prompt.Enabled
     prompt.MaxActivationDistance = math.huge
     prompt.HoldDuration = 0
+    prompt.Enabled = true
     fireproximityprompt(prompt)
     prompt.MaxActivationDistance = originalDist
     prompt.HoldDuration = originalHD
+    prompt.Enabled = originalEnabled
 end
 
 -- ── Helper: TP sát object rồi wait để server nhận vị trí ─────────────────────
@@ -123,7 +124,7 @@ local RETURN_POSITION = Vector3.new(-113, 5, 61)
 local STORE_PROMPT = workspace.Game.Baggage.Store.ProximityPrompt
 
 local gasCanSuccess = false
-
+local isRunning = false
 local function getGasCan()
     --[1] Equip
     local can     = workspace.House.GasCans:GetChildren()[1]
@@ -132,7 +133,6 @@ local function getGasCan()
     if not primary then
         gasCanSuccess = true
         OrionLib:MakeNotification({ Name = "Success!", Content = "Collected all gas cans", Time = 5})
-
         return
     end
 
@@ -177,19 +177,31 @@ local function getWaterGlasses()
 end
 
 local function getAllStuff(value)
-    OrionLib:MakeNotification({
-        Name = "Information",
-        Content = "Re-enable if broken",
-        Timeout = 3,
-        Image   = "rbxassetid://4483345998",
-    })
-    while value do
-        if not gasCanSuccess then
-            getGasCan()
+    isRunning = value
+    if value then
+        local function getAll()
+            OrionLib:MakeNotification({
+                Name = "Information",
+                Content = "Auto Collect Started",
+                Timeout = 3,
+                Image   = "rbxassetid://4483345998",
+            })
+            
+            while isRunning do
+                if not gasCanSuccess then
+                    getGasCan()
+                end
+                
+                -- Kiểm tra lại trạng thái trước mỗi hành động đề phòng người dùng vừa bấm Tắt
+                if not isRunning then break end 
+                getCookedNoodles()
+                
+                if not isRunning then break end
+                task.wait(0.1)
+                getWaterGlasses()
+            end
         end
-        getCookedNoodles()
-        task.wait(0.1)
-        getWaterGlasses()
+        task.spawn(getAll)
     end
 end
 
@@ -201,9 +213,7 @@ MainTab:AddToggle({
     Save     = true,           -- Lưu vào config
     Visible  = true,
     Disabled = false,
-    Callback = function(value)
-        getAllStuff(value)
-    end,
+    Callback = getAllStuff,
 })
 
 -- ═════════════════════════════════════════════════════════════════════════════
@@ -233,8 +243,6 @@ MiscTab:AddButton({
     Callback = function()
         OrionLib:Destroy()
         getgenv().GHUB_LOADED = false
-        if instantPPConnection then
-            instantPPConnection:Disconnect()
-        end
     end,
 })
+
