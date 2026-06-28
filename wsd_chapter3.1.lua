@@ -83,8 +83,9 @@ local function tpTo(position)
 end
 
 -- Tạo cửa sổ
+local WindowName = "G_Hub - Chapter 3"
 local Window = OrionLib:MakeWindow({
-    Name            = "G_Hub - Chapter 3",
+    Name            = WindowName,
     SearchBar       = {
         Default          = "Search tabs...",
         ClearTextOnFocus = true,
@@ -94,7 +95,7 @@ local Window = OrionLib:MakeWindow({
     SaveConfig      = true,
     ConfigFolder    = "WSD_FreeHub",
     IntroEnabled    = true,
-    IntroText       = "G_Hub - Chapter 2",
+    IntroText       = WindowName,
     IntroIcon       = "rbxassetid://7734091286",
     Icon            = "rbxassetid://7734091286",
     CloseCallback   = function()
@@ -117,8 +118,8 @@ local house = workspace.House
 local kitchen = house.Rooms.Kitchen
 local fridge  = kitchen.FridgeNoodles.Primary
 local stove   = kitchen.Stove.Primary
-local glassShelf = workspace.House.Spares:GetChildren()[6].Primary
-local waterDispenser = house.Spares:GetChildren()[7].Primary
+local glassShelf = workspace.House.Spares:FindFirstChild("Shelf with Drinks").Primary
+local waterDispenser = house.Spares:FindFirstChild("WaterDispenser").Primary
 
 local RETURN_POSITION = Vector3.new(-113, 5, 61)
 local STORE_PROMPT = workspace.Game.Baggage.Store.ProximityPrompt
