@@ -79,7 +79,7 @@ end
 -- ── Helper: TP sát object rồi wait để server nhận vị trí ─────────────────────
 local function tpTo(position)
     hrp.CFrame = CFrame.new(position)
-    task.wait(0.08)
+    task.wait(0.15)
 end
 
 -- Tạo cửa sổ
@@ -173,11 +173,11 @@ local function putAll()
     equipTool('gas can')
     firePrompt(STORE_PROMPT)
 
-    task.wait(0.15)
+    task.wait(0.3)
     equipTool('Glass of Water')
     firePrompt(STORE_PROMPT)
 
-    task.wait(0.15)
+    task.wait(0.3)
     equipTool('Cooked Noodle')
     firePrompt(STORE_PROMPT)
 
