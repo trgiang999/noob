@@ -304,11 +304,25 @@ local function autoKill(dad)
 		end
 	end
 
+    local function checkKillCondition()
+        local time = Lighting.ClockTime
+        if not (dad and dad.Parent and humanoid.Health and (time > 22 or time <= 6)) then
+            return true
+        end
+        OrionLib:MakeNotification({
+            Name    = "Warning!",                          -- Tiêu đề thông báo
+            Content = "God-mode isn't ready yet.(Use after 10 PM)",            -- Nội dung thông báo
+            Image   = "rbxassetid://4483345998",        -- Icon bên trái tiêu đề
+            Time    = 3,                                -- Thời gian hiển thị (giây)
+        })
+        return false
+    end
+
 	local chaseDoor = dad:FindFirstChild("ChaseDoor")
 	if chaseDoor then checkChaseDoor(chaseDoor) else dad.ChildAdded:Connect(checkChaseDoor) end
 
 	task.spawn(function()
-		while dad and dad.Parent and humanoid.Health > 0 do
+		while checkKillCondition() do
 			kill()
 			task.wait(0.5)
 		end
