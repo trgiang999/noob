@@ -172,12 +172,12 @@ local function putAll()
     tpTo(RETURN_POSITION)
     equipTool('gas can')
     firePrompt(STORE_PROMPT)
-    
-    task.wait(0.3)
+
+    task.wait(0.15)
     equipTool('Glass of Water')
     firePrompt(STORE_PROMPT)
 
-    task.wait(0.3)
+    task.wait(0.15)
     equipTool('Cooked Noodle')
     firePrompt(STORE_PROMPT)
 
