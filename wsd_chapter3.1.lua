@@ -41,6 +41,10 @@ local hrp        = char:WaitForChild("HumanoidRootPart")
 
 -- ── Helper: Equip tool từ Backpack theo tên ───────────────────────────────────
 local function equipTool(toolName)
+    local humanoid = char:WaitForChild("Humanoid")
+    local backpack  = player:WaitForChild("Backpack")
+    local tool = backpack:FindFirstChild(toolName)
+               or char:FindFirstChild(toolName)
     if not tool then
         warn(("equipTool: '%s' không tìm thấy sau %ds"):format(toolName, timeout))
         return false
@@ -242,4 +246,3 @@ MiscTab:AddButton({
         getgenv().GHUB_LOADED = false
     end,
 })
-
