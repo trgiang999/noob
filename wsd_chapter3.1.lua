@@ -40,18 +40,7 @@ local char       = player.Character or player.CharacterAdded:Wait()
 local hrp        = char:WaitForChild("HumanoidRootPart")
 
 -- ── Helper: Equip tool từ Backpack theo tên ───────────────────────────────────
-local function equipTool(toolName, timeout)
-    timeout = timeout or 0.4
-    local humanoid = char:WaitForChild("Humanoid")
-    local backpack  = player:WaitForChild("Backpack")
-
-    local tool = backpack:FindFirstChild(toolName)
-               or char:FindFirstChild(toolName)
-
-    if not tool then
-        tool = backpack:WaitForChild(toolName, timeout)
-    end
-
+local function equipTool(toolName)
     if not tool then
         warn(("equipTool: '%s' không tìm thấy sau %ds"):format(toolName, timeout))
         return false
