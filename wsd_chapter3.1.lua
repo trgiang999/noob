@@ -41,7 +41,7 @@ local hrp        = char:WaitForChild("HumanoidRootPart")
 
 -- ── Helper: Equip tool từ Backpack theo tên ───────────────────────────────────
 local function equipTool(toolName, timeout)
-    timeout = timeout or 0.1
+    timeout = timeout or 0.4
     local humanoid = char:WaitForChild("Humanoid")
     local backpack  = player:WaitForChild("Backpack")
 
@@ -170,10 +170,11 @@ end
 
 local function putAll()
     tpTo(RETURN_POSITION)
-    equipTool('gas can')
-    firePrompt(STORE_PROMPT)
-
-    task.wait(0.3)
+    if not gasCanSuccess then
+        equipTool('gas can')
+        firePrompt(STORE_PROMPT)
+        task.wait(0.3)
+    end
     equipTool('Glass of Water')
     firePrompt(STORE_PROMPT)
 
