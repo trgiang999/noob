@@ -1,6 +1,6 @@
 -- ── Khởi động thư viện Orion ──────────────────────────────────────────────────
 local function githubGetRaw(user, repo, branch, path)
-    local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s?t=%s")
+    local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s#t=%s")
         :format(user, repo, branch, path, os.time())
 
     local success, content = pcall(game.HttpGetAsync, game, rawUrl)
