@@ -1,4 +1,4 @@
-local OrionLib = loadstring("https://raw.githubusercontent.com/trgiang999/noob/refs/heads/main/OrionLibSource.lua")()
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/trgiang999/noob/refs/heads/main/OrionLibSource.lua"))()
 local Window = OrionLib:MakeWindow({
     Name            = "G_Hub - Lobby",
     SearchBar       = {
