@@ -1,6 +1,6 @@
 -- ── Khởi động thư viện Orion ──────────────────────────────────────────────────
 local function githubGetRaw(user, repo, branch, path)
-    local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s?t=%s")
+    local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s#t=%s")
         :format(user, repo, branch, path, tostring(os.time()))
     local success, content = pcall(game.HttpGetAsync, game, rawUrl)
     if not success or content == "404: Not Found" then
@@ -306,7 +306,7 @@ local function autoKill(dad)
 
     local function checkKillCondition()
         local time = Lighting.ClockTime
-        if not (dad and dad.Parent and humanoid.Health and (time > 22 or time <= 6)) then
+        if (dad and dad.Parent and humanoid.Health and (time > 22 or time <= 6)) then
             return true
         end
         OrionLib:MakeNotification({
