@@ -79,7 +79,7 @@ end
 -- ── Helper: TP sát object rồi wait để server nhận vị trí ─────────────────────
 local function tpTo(position)
     hrp.CFrame = CFrame.new(position)
-    task.wait(0.2)
+    task.wait(0.08)
 end
 
 -- Tạo cửa sổ
@@ -145,11 +145,6 @@ local function getGasCan()
 
     tpTo(primary.Position + Vector3.new(0, 3, 0))
     firePrompt(primary:FindFirstChildOfClass("ProximityPrompt"))
-    equipTool("gas can")
-
-    -- [2] Bỏ vào xe
-    tpTo(RETURN_POSITION)
-    firePrompt(STORE_PROMPT)
 end
 
 local function getCookedNoodles()
@@ -161,11 +156,6 @@ local function getCookedNoodles()
     -- [2] Nấu mì trên bếp
     tpTo(STOVE_POSITION)
     firePrompt(stove.ProximityPrompt)
-    equipTool("Cooked Noodle")
-
-    -- [3] Bỏ vào xe
-    tpTo(RETURN_POSITION)
-    firePrompt(STORE_PROMPT)
 end
 
 local function getWaterGlasses()
@@ -176,11 +166,16 @@ local function getWaterGlasses()
     -- [2] Rót nước từ máy lọc
     tpTo(DISPENSER_POSITION)
     firePrompt(waterDispenser.ProximityPrompt)
-    equipTool("Glass of Water")
+end
 
-    -- [3] Bỏ vào xe
+local function putAll()
     tpTo(RETURN_POSITION)
+    equipTool('gas can')
     firePrompt(STORE_PROMPT)
+    task.wait()
+    equipTool('Glass of Water')
+    task.wait()
+    equipTool('Cooked Noodle')
 end
 
 local function getAllStuff(value)
@@ -204,8 +199,9 @@ local function getAllStuff(value)
                 getCookedNoodles()
                 
                 if not isRunning then break end
-                task.wait(0.1)
                 getWaterGlasses()
+
+                putAll()
             end
         end
         task.spawn(getAll)
