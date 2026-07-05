@@ -62,11 +62,14 @@ local ChapterTable: ChapterMap = {
     ["chapter4.2"] = 17680488855,
     -- Book 2
     ["chapter1_b2"] = 71718624482170,
+    -- Lobby
+    ["lobby"] = 14787369036
 }
 
 -- ── Bảng PlaceId → URL script tương ứng ──────────────────────────────────
 type ExecuteMap = {[number]: string}
 local LoaderTable: ExecuteMap = {
+    --Book1
     [ChapterTable["chapter1"]]      = "wsd_chapter1.lua",
     [ChapterTable["chapter2"]]      = "wsd_chapter2.lua",
     [ChapterTable["chapter3.1"]]    = "wsd_chapter3.1.lua",
@@ -74,7 +77,12 @@ local LoaderTable: ExecuteMap = {
     [ChapterTable["chapter3.3"]]    = "",
     [ChapterTable["chapter4.1"]]    = "",
     [ChapterTable["chapter4.2"]]    = "",
+
+    --Book2
     [ChapterTable["chapter1_b2"]]   = "",
+
+    --Lobby
+    [ChapterTable["lobby"]] = "wsd_lobby.lua"
 }
 
 
