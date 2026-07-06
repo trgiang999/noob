@@ -112,8 +112,9 @@ end
 -- ─────────────────────────────────────────────────────────────────────────────
 --  Tạo cửa sổ UI chính
 -- ─────────────────────────────────────────────────────────────────────────────
+local WindowName = "G_Hub - Chapter 1"
 local Window = OrionLib:MakeWindow({
-    Name            = "G_Hub - Chapter 1",
+    Name            = WindowName,
     SearchBar       = {
         Default          = "Search tabs...",
         ClearTextOnFocus = true,
@@ -123,7 +124,7 @@ local Window = OrionLib:MakeWindow({
     SaveConfig      = true,
     ConfigFolder    = "WSD_FreeHub",
     IntroEnabled    = true,
-    IntroText       = "G_Hub - Chapter 1",
+    IntroText       = WindowName,
     IntroIcon       = "rbxassetid://14229447778",
     Icon            = "rbxassetid://7734091286",
     CloseCallback   = function()
@@ -294,8 +295,12 @@ local function autoKill(dad)
 
     local function checkKillCondition()
         local time = Lighting.ClockTime
-        if (dad and dad.Parent and humanoid.Health and ((time > 22) or (time <= 6))) then
-            return true
+        if dad and dad.Parent then
+            if humanoid.Health and humanoid.Health > 0 then
+                if time > 22 or time <= 6 then
+                    return true
+                end
+            end
         end
         OrionLib:MakeNotification({
             Name    = "Warning!",                          -- Tiêu đề thông báo
