@@ -125,7 +125,7 @@ local Window = OrionLib:MakeWindow({
     IntroEnabled    = true,
     IntroText       = "G_Hub - Chapter 1",
     IntroIcon       = "rbxassetid://14229447778",
-    Icon            = "rbxassetid://14229447778",
+    Icon            = "rbxassetid://7734091286",
     CloseCallback   = function()
         print("UI closed")
     end,
