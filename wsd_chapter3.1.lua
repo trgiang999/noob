@@ -90,13 +90,13 @@ local Window = OrionLib:MakeWindow({
         Default          = "Search tabs...",
         ClearTextOnFocus = true,
     },
-    IntroToggleIcon = "rbxassetid://7734091286",
+    IntroToggleIcon = "rbxassetid://14229447778",
     HidePremium     = false,
     SaveConfig      = true,
     ConfigFolder    = "WSD_FreeHub",
     IntroEnabled    = true,
     IntroText       = WindowName,
-    IntroIcon       = "rbxassetid://7734091286",
+    IntroIcon       = "rbxassetid://14229447778",
     Icon            = "rbxassetid://7734091286",
     CloseCallback   = function()
         print("UI closed")
@@ -252,5 +252,6 @@ MiscTab:AddButton({
     Callback = function()
         OrionLib:Destroy()
         getgenv().GHUB_LOADED = false
+        getAllStuff(false)
     end,
 })
