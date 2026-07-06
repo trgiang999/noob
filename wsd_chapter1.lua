@@ -113,7 +113,7 @@ end
 --  Tạo cửa sổ UI chính
 -- ─────────────────────────────────────────────────────────────────────────────
 local Window = OrionLib:MakeWindow({
-    Name            = "G_Hub - Chapter 1(v1.1)",
+    Name            = "G_Hub - Chapter 1",
     SearchBar       = {
         Default          = "Search tabs...",
         ClearTextOnFocus = true,
@@ -280,6 +280,7 @@ local isListening: boolean = false
 
 local function autoKill(dad)
 	local humanoid = dad:WaitForChild("Humanoid", 5)
+
 	if not humanoid then return end
 
 	local function kill() humanoid.Health = 0 end
