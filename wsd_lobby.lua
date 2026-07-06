@@ -1,20 +1,44 @@
-local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/trgiang999/noob/refs/heads/main/OrionLibSource.lua"))()
+-- ── Khởi động thư viện Orion ──────────────────────────────────────────────────
+local function githubGetRaw(user, repo, branch, path)
+    local rawUrl = ("https://raw.githubusercontent.com/%s/%s/%s/%s#t=%s")
+        :format(user, repo, branch, path, tostring(os.time()))
+    local success, content = pcall(game.HttpGetAsync, game, rawUrl)
+    if not success or content == "404: Not Found" then
+        error("githubGet failed: Kiểm tra lại đường dẫn hoặc kết nối mạng!")
+    end
+    return content
+end
+
+local OrionLib = loadstring(githubGetRaw("trgiang999", "noob", "main", "OrionLibSource.lua"))()
+
+if getgenv().GHUB_LOADED then 
+    OrionLib:MakeNotification({
+        Name    = "Warning!",                          
+        Content = "The script is already running!",            
+        Image   = "rbxassetid://4483345998",        
+        Time    = 3,      
+    })
+    return
+end
+
+getgenv().GHUB_LOADED = true
+
 local Window = OrionLib:MakeWindow({
     Name            = "G_Hub - Lobby",
     SearchBar       = {
         Default          = "Search tabs...",
         ClearTextOnFocus = true,
     },
-    IntroToggleIcon = "rbxassetid://7734091286",
+    IntroToggleIcon = "rbxassetid://14229447778",
     HidePremium     = false,
     SaveConfig      = true,
     ConfigFolder    = "WSD_FreeHub",
     IntroEnabled    = true,
     IntroText       = "G_Hub - Lobby",
-    IntroIcon       = "rbxassetid://7734091286",
-    Icon            = "rbxassetid://7734091286",
+    IntroIcon       = "rbxassetid://14229447778",
+    Icon            = "rbxassetid://14229447778",
     CloseCallback   = function()
-        print("UI closed")
+        
     end,
 })
 local MainTab = Window:MakeTab({
@@ -58,3 +82,11 @@ MainTab:AddButton({
         cloneref(game:GetService("TeleportService")):Teleport(71718624482170, game.Players.LocalPlayer);
     end;
 });
+
+MainTab:AddButton({
+    Name = "Destroy UI",
+    CallBack = function()
+        OrionLib:Destroy()
+        getgenv().GHUB_LOADED = false
+    end
+})
