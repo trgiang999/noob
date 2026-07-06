@@ -118,14 +118,14 @@ local Window = OrionLib:MakeWindow({
         Default          = "Search tabs...",
         ClearTextOnFocus = true,
     },
-    IntroToggleIcon = "rbxassetid://7734091286",
+    IntroToggleIcon = "rbxassetid://14229447778",
     HidePremium     = false,
     SaveConfig      = true,
     ConfigFolder    = "WSD_FreeHub",
     IntroEnabled    = true,
     IntroText       = "G_Hub - Chapter 1",
-    IntroIcon       = "rbxassetid://7734091286",
-    Icon            = "rbxassetid://7734091286",
+    IntroIcon       = "rbxassetid://14229447778",
+    Icon            = "rbxassetid://14229447778",
     CloseCallback   = function()
         print("UI closed")
     end,
@@ -145,52 +145,40 @@ local MainTab = Window:MakeTab({
 --  SECTION: Main.Main
 -- ═════════════════════════════════════════════════════════════════════════════
 MainTab:AddSection({ Name = "Main" })
---Sub-Helper: Auto Do Something
-local function autoDoStuff(value: number, func, threshold)
-    threshold = threshold or 30
-    if value <= threshold then
-        func()
-    end
-end
-
-
--- ┌─ Get Cooked Noodles ────────────────────────────────────────────────────┐
--- │  Quy trình tự động nấu mì:                                              │
--- │    1. TP → Fridge  → fireprox → đợi → equip "Raw Noodle"                │
--- │    2. TP → Stove   → fireprox → đợi → equip "Cooked Noodle"             │
--- │    3. TP → Plate   → fireprox 2 lần (đặt mì lên đĩa)                    │
--- └─────────────────────────────────────────────────────────────────────────┘
-
-local kitchen = Workspace.House.Rooms.Kitchen
+--Location
+local house = workspace.House
+local kitchen = house.Rooms.Kitchen
 local fridge  = kitchen.FridgeNoodles.Primary
 local stove   = kitchen.Stove.Primary
+local glassShelf = house.Spares:FindFirstChild("Shelf with Drinks").Primary
+local waterDispenser = house.Spares:FindFirstChild("WaterDispenser").Primary
 
-local function getPlate()
-    return kitchen.DiningTable.Noodles:GetChildren()[6].Plate
-end
+--Position
+local FRIDGE_POSITION = Vector3.new(-122, 5, 16)
+local STOVE_POSITION = Vector3.new(-111, 5, 17)
+local PLATE_POSITION = Vector3.new(-120, 5, 25)
+
+local SHELF_POSITION = Vector3.new(-126, 5, 25)
+local DISPENSER_POSITION = Vector3.new(-125, 5, 30)
+
+local GENERATOR_POSITION = Vector3.new(-159, 5, 48)
 
 local function eatCookedNoodles()
-    OrionLib:MakeNotification({
-        Name    = "Note!",                          -- Tiêu đề thông báo
-        Content = "Using anti sit is recommended!",            -- Nội dung thông báo
-        Image   = "rbxassetid://4483345998",        -- Icon bên trái tiêu đề
-        Time    = 3,                                -- Thời gian hiển thị (giây)
-    })
     local originalCFrame = hrp.CFrame
 
     -- [1] Lấy mì sống từ tủ lạnh
-    tpTo(fridge.Position)
+    tpTo(FRIDGE_POSITION)
     firePrompt(fridge.ProximityPrompt)
     equipTool("Raw Noodle")
 
     -- [2] Nấu mì trên bếp
-    tpTo(stove.Position)
+    tpTo(STOVE_POSITION)
     firePrompt(stove.ProximityPrompt)
     equipTool("Cooked Noodle")
 
     -- [3] Đặt mì lên đĩa (fire 2 lần)
-    local plate = getPlate()
-    tpTo(plate.Position)
+    local plate = kitchen.DiningTable.Noodles:GetChildren()[6].Plate
+    tpTo(PLATE_POSITION)
     firePrompt(plate.ProximityPrompt)
     task.wait(0.1)
     firePrompt(plate.ProximityPrompt)
@@ -212,19 +200,18 @@ MainTab:AddButton({
 -- │    2. TP → Water Dispenser   → fireprox → đợi → equip "Glass of Water"  │
 -- │    3. Uống/Fire click/REmoteevent -> TP old position                    │
 -- └─────────────────────────────────────────────────────────────────────────┘
-local waterDispenser = Workspace.House.Spares:GetChildren()[7].Primary
 
 local function drinkWater()
     local originalCFrame = hrp.CFrame
 
     -- [1] Lấy cốc từ kệ
-    local glass = Workspace.House.Spares:GetChildren()[6].Primary
-    tpTo(glass.Position)
+    local glass = house.Spares:GetChildren()[6].Primary
+    tpTo(SHELF_POSITION)
     firePrompt(glass.ProximityPrompt)
     equipTool("Drinking Glass")
 
     -- [2] Rót nước từ máy lọc + uống
-    tpTo(waterDispenser.Position)
+    tpTo(DISPENSER_POSITION)
     firePrompt(waterDispenser.ProximityPrompt)
     equipTool("Glass of Water")
 
@@ -254,11 +241,11 @@ MainTab:AddButton({
 -- │    2. TP → Generator -> fireprox -> Tp old pos                          |
 -- │                                                                         │
 -- └─────────────────────────────────────────────────────────────────────────┘
-local generator = Workspace.House.Generator.Button
+local generator = house.Generator.Button
 local function refillGenerator()
     local oldCFrame = hrp.CFrame
     -- [1]. Equip
-    local can     = Workspace.House.GasCans:GetChildren()[1]
+    local can     = house.GasCans:GetChildren()[1]
     local primary = can and can:FindFirstChild("Primary")
 
     if not primary then
@@ -271,7 +258,7 @@ local function refillGenerator()
     equipTool("gas can")
 
     -- [2] Đổ xăng vào generator
-    tpTo(generator.Position)
+    tpTo(GENERATOR_POSITION)
     firePrompt(generator:FindFirstChildOfClass("ProximityPrompt"))
     task.wait(0.1)
 
@@ -306,13 +293,12 @@ local function autoKill(dad)
 
     local function checkKillCondition()
         local time = Lighting.ClockTime
-        if (dad and dad.Parent and humanoid.Health and (time > 22 or time <= 6)) then
+        if (dad and dad.Parent and humanoid.Health and ((time > 22) or (time <= 6))) then
             return true
         end
         OrionLib:MakeNotification({
             Name    = "Warning!",                          -- Tiêu đề thông báo
             Content = "God-mode isn't ready yet.(Use after 10 PM)",            -- Nội dung thông báo
-            Image   = "rbxassetid://4483345998",        -- Icon bên trái tiêu đề
             Time    = 3,                                -- Thời gian hiển thị (giây)
         })
         return false
@@ -334,7 +320,6 @@ function killDad()
         OrionLib:MakeNotification({
             Name    = "Warning!",                          -- Tiêu đề thông báo
             Content = "You've already pressed God-mode! Please wait until dad is possessed.",            -- Nội dung thông báo
-            Image   = "rbxassetid://4483345998",        -- Icon bên trái tiêu đề
             Time    = 3,                                -- Thời gian hiển thị (giây)
         })
         return
@@ -556,7 +541,7 @@ local function createStatLabel(text: string, valueObject: IntValue): any
     return para
 end
 
-createStatLabel("Fuel", Workspace.House.Generator.Bar)
+createStatLabel("Fuel", house.Generator.Bar)
 createStatLabel("Thirst", player.Thirst)
 createStatLabel("Hunger", player.Hunger)
 createStatLabel("Energy", player.Energy)
